@@ -21,19 +21,19 @@ export interface MindMapCanvasProps {
   className?: string;
 }
 
-// Default data structure for the Shurangama Sutra
+// Default data structure for the Shurangama Sutra - only root expanded by default
 const defaultData: MindMapNode[] = [{
   id: "root",
   title: "楞嚴經",
   pageRef: "P.1",
   lectureNumber: 1,
-  isExpanded: true,
+  isExpanded: true, // Only root is expanded by default
   children: [{
     id: "chapter1",
     title: "第一章 - 七處徵心",
     pageRef: "P.15",
     lectureNumber: 2,
-    isExpanded: false,
+    isExpanded: false, // All chapters start collapsed
     children: [{
       id: "section1-1",
       title: "阿難示墮",
@@ -52,7 +52,7 @@ const defaultData: MindMapNode[] = [{
     title: "第二章 - 十番顯見",
     pageRef: "P.89",
     lectureNumber: 8,
-    isExpanded: false,
+    isExpanded: false, // All chapters start collapsed
     children: [{
       id: "section2-1",
       title: "顯見不動",
@@ -71,7 +71,7 @@ const defaultData: MindMapNode[] = [{
     title: "第三章 - 辨識真妄",
     pageRef: "P.159",
     lectureNumber: 15,
-    isExpanded: false,
+    isExpanded: false, // All chapters start collapsed
     children: [{
       id: "section3-1",
       title: "識精元明",
@@ -105,10 +105,30 @@ export default function MindMapCanvas({
   const nodeWidth = 200;
   const nodeHeight = 80;
   const levelSpacing = 280;
-  const siblingSpacing = 100;
+  const siblingSpacing = 150;
 
-  // Calculate node positions
-  const calculateLayout = useCallback((nodeList: MindMapNode[], level = 0, parentY = 0): Array<{
+  // Calculate the total height needed by a subtree (including all expanded descendants)
+  const calculateSubtreeHeight = useCallback((node: MindMapNode): number => {
+    if (!node.isExpanded || !node.children || node.children.length === 0) {
+      return nodeHeight;
+    }
+    
+    // Calculate total height needed by all children and their subtrees
+    let totalChildrenHeight = 0;
+    node.children.forEach(child => {
+      totalChildrenHeight += calculateSubtreeHeight(child);
+    });
+    
+    // Add spacing between children
+    const childSpacing = (node.children.length - 1) * siblingSpacing;
+    const childrenTotalHeight = totalChildrenHeight + childSpacing;
+    
+    // Return the maximum of node height and children total height
+    return Math.max(nodeHeight, childrenTotalHeight);
+  }, []);
+
+  // Calculate node positions with proper subtree spacing to prevent overlaps
+  const calculateLayout = useCallback((nodeList: MindMapNode[], level = 0, startY = 0): Array<{
     node: MindMapNode;
     x: number;
     y: number;
@@ -120,22 +140,45 @@ export default function MindMapCanvas({
       y: number;
       level: number;
     }> = [];
+    
+    let currentY = startY;
+    
     nodeList.forEach((node, index) => {
       const x = level * levelSpacing + 50;
-      const y = parentY + (index - (nodeList.length - 1) / 2) * (nodeHeight + siblingSpacing);
+      const subtreeHeight = calculateSubtreeHeight(node);
+      
+      // Position this node at the center of its allocated subtree space
+      const nodeY = currentY + subtreeHeight / 2 - nodeHeight / 2;
+      
       positions.push({
         node,
         x,
-        y,
+        y: nodeY,
         level
       });
+      
+      // If node is expanded, layout its children
       if (node.isExpanded && node.children && node.children.length > 0) {
-        const childPositions = calculateLayout(node.children, level + 1, y);
+        // Calculate space for children - center them within the subtree
+        let totalChildrenHeight = 0;
+        node.children.forEach(child => {
+          totalChildrenHeight += calculateSubtreeHeight(child);
+        });
+        const childSpacing = (node.children.length - 1) * siblingSpacing;
+        const childrenTotalHeight = totalChildrenHeight + childSpacing;
+        
+        // Start children layout from the top of their allocated space
+        const childrenStartY = nodeY + nodeHeight / 2 - childrenTotalHeight / 2;
+        const childPositions = calculateLayout(node.children, level + 1, childrenStartY);
         positions.push(...childPositions);
       }
+      
+      // Move to next sibling position
+      currentY += subtreeHeight + siblingSpacing;
     });
+    
     return positions;
-  }, []);
+  }, [calculateSubtreeHeight]);
   const nodePositions = calculateLayout(nodes);
 
   // Toggle node expansion
@@ -157,7 +200,41 @@ export default function MindMapCanvas({
         return node;
       });
     };
-    setNodes(updateNodes(nodes));
+    
+    const newNodes = updateNodes(nodes);
+    setNodes(newNodes);
+    
+    // Auto-adjust viewport after expansion to show new content
+    setTimeout(() => {
+      if (containerRef.current) {
+        const bounds = containerRef.current.getBoundingClientRect();
+        const newPositions = calculateLayout(newNodes);
+        
+        if (newPositions.length > 0) {
+          const minX = Math.min(...newPositions.map(p => p.x));
+          const maxX = Math.max(...newPositions.map(p => p.x)) + nodeWidth;
+          const minY = Math.min(...newPositions.map(p => p.y));
+          const maxY = Math.max(...newPositions.map(p => p.y)) + nodeHeight;
+          
+          const contentWidth = maxX - minX + 100;
+          const contentHeight = maxY - minY + 100;
+          
+          const scaleX = bounds.width / contentWidth;
+          const scaleY = bounds.height / contentHeight;
+          const newScale = Math.min(scaleX, scaleY, 1);
+          
+          // Center the content in the viewport
+          const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
+          const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
+          
+          setTransform({
+            x: centerX - minX * newScale,
+            y: centerY - minY * newScale,
+            scale: newScale
+          });
+        }
+      }
+    }, 100); // Small delay to ensure layout is calculated
   }, [nodes]);
 
   // Pan and zoom handlers
@@ -276,10 +353,29 @@ export default function MindMapCanvas({
     });
   };
 
-  // Generate curved path between nodes
+  // Generate curved "noodle" path between nodes (inspired by jsMind)
   const generatePath = (x1: number, y1: number, x2: number, y2: number) => {
-    const midX = (x1 + x2) / 2;
-    return `M ${x1 + nodeWidth} ${y1 + nodeHeight / 2} C ${midX} ${y1 + nodeHeight / 2} ${midX} ${y2 + nodeHeight / 2} ${x2} ${y2 + nodeHeight / 2}`;
+    const startX = x1 + nodeWidth;
+    const startY = y1 + nodeHeight / 2;
+    const endX = x2;
+    const endY = y2 + nodeHeight / 2;
+    
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    
+    // More subtle, jsMind-inspired curve calculations
+    const controlDistance = Math.min(Math.abs(deltaX) * 0.5, 120); // Cap max curve distance
+    const verticalOffset = Math.abs(deltaY) * 0.1; // Reduced vertical offset for subtlety
+    
+    // Smoother control points with better proportions
+    const cp1X = startX + controlDistance;
+    const cp1Y = startY + (deltaY > 0 ? verticalOffset : -verticalOffset);
+    
+    // More balanced second control point
+    const cp2X = endX - controlDistance * 0.4;
+    const cp2Y = endY - (deltaY > 0 ? verticalOffset * 0.5 : -verticalOffset * 0.5);
+    
+    return `M ${startX} ${startY} C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${endX} ${endY}`;
   };
 
   // Check if node matches search query
@@ -288,7 +384,12 @@ export default function MindMapCanvas({
     return node.title.toLowerCase().includes(searchQuery.toLowerCase()) || node.pageRef?.toLowerCase().includes(searchQuery.toLowerCase());
   };
   return <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden bg-background", className)} role="application" aria-label="Shurangama Sutra Mind Map">
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description">
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" onClick={(e) => {
+        // Only handle clicks on the SVG background, not on nodes
+        if (e.target === e.currentTarget) {
+          // This is a background click, do nothing for now
+        }
+      }}>
         <defs>
           <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.1" />
@@ -307,14 +408,14 @@ export default function MindMapCanvas({
           return node.children.map(child => {
             const childPos = nodePositions.find(p => p.node.id === child.id);
             if (!childPos) return null;
-            const opacity = level === 0 ? 1 : level === 1 ? 0.7 : 0.4;
-            return <motion.path key={`${node.id}-${child.id}`} d={generatePath(x, y, childPos.x, childPos.y)} stroke="hsl(var(--primary))" strokeWidth="2" fill="none" opacity={opacity} initial={{
+            const opacity = level === 0 ? 1 : level === 1 ? 0.8 : 0.6;
+            return <motion.path key={`${node.id}-${child.id}`} d={generatePath(x, y, childPos.x, childPos.y)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={opacity} className="stroke-primary" initial={{
               pathLength: 0
             }} animate={{
               pathLength: 1
             }} transition={{
-              duration: 0.3,
-              ease: "easeOut"
+              duration: 0.5,
+              ease: "easeInOut"
             }} />;
           });
         })}
@@ -326,7 +427,7 @@ export default function MindMapCanvas({
           y,
           level
         }) => {
-          const opacity = level === 0 ? 1 : level === 1 ? 0.7 : 0.4;
+          const opacity = 1; // All nodes now have full opacity for accessibility
           const highlighted = isHighlighted(node);
           const isFocused = focusedNodeId === node.id;
           return <motion.g key={node.id} initial={{
@@ -340,32 +441,35 @@ export default function MindMapCanvas({
           }} style={{
             opacity
           }}>
-                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" fill={highlighted ? "hsl(var(--primary))" : "hsl(var(--card))"} stroke={isFocused ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className="cursor-pointer transition-all duration-200" onClick={() => toggleNode(node.id)} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
+                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200", highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border", isFocused && "stroke-primary")} onClick={(e) => {
+                  e.stopPropagation();
+                  toggleNode(node.id);
+                }} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
               scale: 1.02
             }} whileTap={{
               scale: 0.98
             }} />
                 
                 {/* Node title */}
-                <text x={x + 16} y={y + 24} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--card-foreground))"} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className="pointer-events-none select-none">
+                <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
                   {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
                 </text>
                 
                 {/* Page reference */}
-                {node.pageRef && <text x={x + 16} y={y + 44} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"} fontSize="12" className="pointer-events-none select-none">
+                {node.pageRef && <text x={x + 16} y={y + 44} fontSize="12" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-foreground")}>
                     {node.pageRef}
                   </text>}
                 
                 {/* Lecture number badge */}
                 {node.lectureNumber && <g>
-                    <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" fill="hsl(var(--primary))" className="pointer-events-none" />
-                    <text x={x + nodeWidth - 24} y={y + 25} fill="hsl(var(--primary-foreground))" fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none">
+                    <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" className="pointer-events-none fill-primary" />
+                    <text x={x + nodeWidth - 24} y={y + 25} fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none fill-primary-foreground">
                       {node.lectureNumber}
                     </text>
                   </g>}
                 
                 {/* Expansion indicator */}
-                {node.children && node.children.length > 0 && <motion.text x={x + nodeWidth - 16} y={y + nodeHeight - 12} fill="hsl(var(--muted-foreground))" fontSize="16" textAnchor="middle" className="pointer-events-none select-none" animate={{
+                {node.children && node.children.length > 0 && <motion.text x={x + nodeWidth - 16} y={y + nodeHeight - 12} fontSize="16" textAnchor="middle" className="pointer-events-none select-none fill-foreground" animate={{
               rotate: node.isExpanded ? 90 : 0
             }} transition={{
               duration: 0.2
