@@ -78,7 +78,7 @@ export default function ContentPanel({
     if (!query.trim()) return text;
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
-    return parts.map((part, index) => regex.test(part) ? <mark key={index} className="bg-primary/20 text-primary-foreground px-1 rounded" data-magicpath-id="0" data-magicpath-path="ContentPanel.tsx">
+    return parts.map((part, index) => regex.test(part) ? <mark key={index} className="bg-primary/20 text-primary-foreground px-1 rounded">
           {part}
         </mark> : part);
   };
@@ -95,29 +95,29 @@ export default function ContentPanel({
         };
       case "GPT":
         return {
-          icon: <Bot className="h-4 w-4" data-magicpath-id="1" data-magicpath-path="ContentPanel.tsx" />,
+          icon: <Bot className="h-4 w-4" />,
           accent: "border-l-green-500",
           bg: "bg-green-50 dark:bg-green-950/20",
           badge: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
         };
       case "DeepSeek":
         return {
-          icon: <User className="h-4 w-4" data-magicpath-id="2" data-magicpath-path="ContentPanel.tsx" />,
+          icon: <User className="h-4 w-4" />,
           accent: "border-l-blue-500",
           bg: "bg-blue-50 dark:bg-blue-950/20",
           badge: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
         };
       default:
         return {
-          icon: <Bot className="h-4 w-4" data-magicpath-id="3" data-magicpath-path="ContentPanel.tsx" />,
+          icon: <Bot className="h-4 w-4" />,
           accent: "border-l-gray-500",
           bg: "bg-gray-50 dark:bg-gray-950/20",
           badge: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300"
         };
     }
   };
-  return <ScrollArea className={cn("h-full w-full", className)} data-magicpath-id="4" data-magicpath-path="ContentPanel.tsx">
-      <div className="space-y-4 p-1" data-magicpath-id="5" data-magicpath-path="ContentPanel.tsx">
+  return <ScrollArea className={cn("h-full w-full", className)}>
+      <div className="space-y-4 p-1">
         {/* Original Scripture Card */}
         <motion.section initial={{
         opacity: 0,
@@ -128,23 +128,23 @@ export default function ContentPanel({
       }} transition={{
         duration: 0.3,
         delay: 0.1
-      }} data-magicpath-id="6" data-magicpath-path="ContentPanel.tsx">
-          <Card className="transition-all duration-300 hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20" data-magicpath-id="7" data-magicpath-path="ContentPanel.tsx">
-            <CardHeader className="pb-4" data-magicpath-id="8" data-magicpath-path="ContentPanel.tsx">
+      }}>
+          <Card className="transition-all duration-300 hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
+            <CardHeader className="pb-4">
               <CardTitle className="text-xl font-bold text-foreground" style={{
               fontFamily: "'Lora', serif"
-            }} data-magicpath-id="9" data-magicpath-path="ContentPanel.tsx">
+            }}>
                 {highlightText(scripture.title, searchQuery)}
               </CardTitle>
-              {scripture.chapter && <div className="flex gap-2" data-magicpath-id="10" data-magicpath-path="ContentPanel.tsx">
-                  <Badge variant="outline" data-magicpath-id="11" data-magicpath-path="ContentPanel.tsx">{scripture.chapter}</Badge>
-                  {scripture.verse && <Badge variant="outline" data-magicpath-id="12" data-magicpath-path="ContentPanel.tsx">{scripture.verse}</Badge>}
+              {scripture.chapter && <div className="flex gap-2">
+                  <Badge variant="outline">{scripture.chapter}</Badge>
+                  {scripture.verse && <Badge variant="outline">{scripture.verse}</Badge>}
                 </div>}
             </CardHeader>
-            <CardContent className="pt-0" data-magicpath-id="13" data-magicpath-path="ContentPanel.tsx">
+            <CardContent className="pt-0">
               <blockquote className="text-lg leading-relaxed font-bold text-foreground max-w-[70ch]" style={{
               fontFamily: "'Lora', serif"
-            }} lang="zh-Hant" data-magicpath-id="14" data-magicpath-path="ContentPanel.tsx">
+            }} lang="zh-Hant">
                 {highlightText(scripture.text, searchQuery)}
               </blockquote>
             </CardContent>
@@ -161,34 +161,34 @@ export default function ContentPanel({
       }} transition={{
         duration: 0.3,
         delay: 0.2
-      }} data-magicpath-id="15" data-magicpath-path="ContentPanel.tsx">
+      }}>
           <Card className="border-none shadow-none bg-card/80 dark:bg-card/60 rounded-2xl px-0 py-0 md:p-0 transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20" style={{
           boxShadow: '0 2px 24px 0 oklch(0.1649 0.0352 281.8285 / 0.08), 0 1.5px 4px 0 oklch(0.1649 0.0352 281.8285 / 0.04)'
-        }} data-magicpath-id="16" data-magicpath-path="ContentPanel.tsx">
-            <CardHeader className="pb-2 pt-6 px-6 md:px-8" data-magicpath-id="17" data-magicpath-path="ContentPanel.tsx">
+        }}>
+            <CardHeader className="pb-2 pt-6 px-6 md:px-8">
               <CardTitle className="text-lg md:text-xl font-semibold text-foreground tracking-tight mb-1 flex items-center gap-2" style={{
               fontFamily: 'Outfit, var(--font-sans)'
-            }} data-magicpath-id="18" data-magicpath-path="ContentPanel.tsx">
+            }}>
                 {highlightText(commentary.title, searchQuery)}
               </CardTitle>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1 mb-0.5" data-magicpath-id="19" data-magicpath-path="ContentPanel.tsx">
-                <span className="font-medium text-sidebar-primary" data-magicpath-id="20" data-magicpath-path="ContentPanel.tsx">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1 mb-0.5">
+                <span className="font-medium text-sidebar-primary">
                   {commentary.author}
                 </span>
                 {commentary.source && <>
-                    <span aria-hidden="true" className="mx-1 opacity-60" data-magicpath-id="21" data-magicpath-path="ContentPanel.tsx">
+                    <span aria-hidden="true" className="mx-1 opacity-60">
                       &bull;
                     </span>
-                    <span className="text-xs md:text-sm text-muted-foreground/80" data-magicpath-id="22" data-magicpath-path="ContentPanel.tsx">
+                    <span className="text-xs md:text-sm text-muted-foreground/80">
                       {commentary.source}
                     </span>
                   </>}
               </div>
             </CardHeader>
-            <CardContent className="pt-0 pb-6 px-6 md:px-8" data-magicpath-id="23" data-magicpath-path="ContentPanel.tsx">
+            <CardContent className="pt-0 pb-6 px-6 md:px-8">
               <blockquote className="text-base md:text-lg leading-relaxed text-foreground max-w-[60ch] border-l-4 border-sidebar-accent/60 pl-6 italic bg-muted/30 rounded-lg py-3 px-0" style={{
               fontFamily: 'Outfit, var(--font-sans)'
-            }} data-magicpath-id="24" data-magicpath-path="ContentPanel.tsx">
+            }}>
                 {highlightText(commentary.text, searchQuery)}
               </blockquote>
             </CardContent>
@@ -207,31 +207,31 @@ export default function ContentPanel({
         }} transition={{
           duration: 0.3,
           delay: 0.3 + index * 0.1
-        }} data-magicpath-id="25" data-magicpath-path="ContentPanel.tsx">
-              <Card className={cn("border-l-4 transition-all duration-300 hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20", style.accent, style.bg)} data-magicpath-id="26" data-magicpath-path="ContentPanel.tsx">
-                <CardHeader className="pb-4" data-magicpath-id="27" data-magicpath-path="ContentPanel.tsx">
-                  <div className="flex items-center justify-between" data-magicpath-id="28" data-magicpath-path="ContentPanel.tsx">
-                    <CardTitle className="text-lg font-semibold text-foreground" data-magicpath-id="29" data-magicpath-path="ContentPanel.tsx">
+        }}>
+              <Card className={cn("border-l-4 transition-all duration-300 hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20", style.accent, style.bg)}>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold text-foreground">
                       {highlightText(analysis.title, searchQuery)}
                     </CardTitle>
-                    <Badge className={cn("flex items-center gap-1", style.badge)} data-magicpath-id="30" data-magicpath-path="ContentPanel.tsx">
+                    <Badge className={cn("flex items-center gap-1", style.badge)}>
                       {style.icon}
                       {analysis.name}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-4" data-magicpath-id="31" data-magicpath-path="ContentPanel.tsx">
-                  <p className="text-base leading-relaxed text-foreground max-w-[70ch]" data-magicpath-id="32" data-magicpath-path="ContentPanel.tsx">
+                <CardContent className="pt-0 space-y-4">
+                  <p className="text-base leading-relaxed text-foreground max-w-[70ch]">
                     {highlightText(analysis.content, searchQuery)}
                   </p>
                   
-                  {analysis.insights && analysis.insights.length > 0 && <div data-magicpath-id="33" data-magicpath-path="ContentPanel.tsx">
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2" data-magicpath-id="34" data-magicpath-path="ContentPanel.tsx">
+                  {analysis.insights && analysis.insights.length > 0 && <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
                         關鍵洞察
                       </h4>
-                      <ul className="space-y-1" data-magicpath-id="35" data-magicpath-path="ContentPanel.tsx">
-                        {analysis.insights.map((insight, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2" data-magicpath-id="36" data-magicpath-path="ContentPanel.tsx">
-                            <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" data-magicpath-id="37" data-magicpath-path="ContentPanel.tsx" />
+                      <ul className="space-y-1">
+                        {analysis.insights.map((insight, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                            <span className="w-1 h-1 bg-primary rounded-full flex-shrink-0" />
                             {highlightText(insight, searchQuery)}
                           </li>)}
                       </ul>

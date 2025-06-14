@@ -287,15 +287,15 @@ export default function MindMapCanvas({
     if (!searchQuery) return false;
     return node.title.toLowerCase().includes(searchQuery.toLowerCase()) || node.pageRef?.toLowerCase().includes(searchQuery.toLowerCase());
   };
-  return <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden bg-background", className)} role="application" aria-label="Shurangama Sutra Mind Map" data-magicpath-id="0" data-magicpath-path="MindMapCanvas.tsx">
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" data-magicpath-id="1" data-magicpath-path="MindMapCanvas.tsx">
-        <defs data-magicpath-id="2" data-magicpath-path="MindMapCanvas.tsx">
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%" data-magicpath-id="3" data-magicpath-path="MindMapCanvas.tsx">
-            <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.1" data-magicpath-id="4" data-magicpath-path="MindMapCanvas.tsx" />
+  return <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden bg-background", className)} role="application" aria-label="Shurangama Sutra Mind Map">
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description">
+        <defs>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.1" />
           </filter>
         </defs>
         
-        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`} data-magicpath-id="5" data-magicpath-path="MindMapCanvas.tsx">
+        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
           {/* Render connections */}
           {nodePositions.map(({
           node,
@@ -315,7 +315,7 @@ export default function MindMapCanvas({
             }} transition={{
               duration: 0.3,
               ease: "easeOut"
-            }} data-magicpath-id="6" data-magicpath-path="MindMapCanvas.tsx" />;
+            }} />;
           });
         })}
           
@@ -339,27 +339,27 @@ export default function MindMapCanvas({
             duration: 0.3
           }} style={{
             opacity
-          }} data-magicpath-id="7" data-magicpath-path="MindMapCanvas.tsx">
+          }}>
                 <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" fill={highlighted ? "hsl(var(--primary))" : "hsl(var(--card))"} stroke={isFocused ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className="cursor-pointer transition-all duration-200" onClick={() => toggleNode(node.id)} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
               scale: 1.02
             }} whileTap={{
               scale: 0.98
-            }} data-magicpath-id="8" data-magicpath-path="MindMapCanvas.tsx" />
+            }} />
                 
                 {/* Node title */}
-                <text x={x + 16} y={y + 24} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--card-foreground))"} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className="pointer-events-none select-none" data-magicpath-id="9" data-magicpath-path="MindMapCanvas.tsx">
+                <text x={x + 16} y={y + 24} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--card-foreground))"} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className="pointer-events-none select-none">
                   {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
                 </text>
                 
                 {/* Page reference */}
-                {node.pageRef && <text x={x + 16} y={y + 44} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"} fontSize="12" className="pointer-events-none select-none" data-magicpath-id="10" data-magicpath-path="MindMapCanvas.tsx">
+                {node.pageRef && <text x={x + 16} y={y + 44} fill={highlighted ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))"} fontSize="12" className="pointer-events-none select-none">
                     {node.pageRef}
                   </text>}
                 
                 {/* Lecture number badge */}
-                {node.lectureNumber && <g data-magicpath-id="11" data-magicpath-path="MindMapCanvas.tsx">
-                    <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" fill="hsl(var(--primary))" className="pointer-events-none" data-magicpath-id="12" data-magicpath-path="MindMapCanvas.tsx" />
-                    <text x={x + nodeWidth - 24} y={y + 25} fill="hsl(var(--primary-foreground))" fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none" data-magicpath-id="13" data-magicpath-path="MindMapCanvas.tsx">
+                {node.lectureNumber && <g>
+                    <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" fill="hsl(var(--primary))" className="pointer-events-none" />
+                    <text x={x + nodeWidth - 24} y={y + 25} fill="hsl(var(--primary-foreground))" fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none">
                       {node.lectureNumber}
                     </text>
                   </g>}
@@ -369,7 +369,7 @@ export default function MindMapCanvas({
               rotate: node.isExpanded ? 90 : 0
             }} transition={{
               duration: 0.2
-            }} data-magicpath-id="14" data-magicpath-path="MindMapCanvas.tsx">
+            }}>
                     ▶
                   </motion.text>}
               </motion.g>;
@@ -386,29 +386,29 @@ export default function MindMapCanvas({
       y: 0
     }} transition={{
       delay: 0.5
-    }} data-magicpath-id="15" data-magicpath-path="MindMapCanvas.tsx">
-        <Button size="icon" variant="secondary" onClick={zoomIn} aria-label="Zoom in" className="shadow-lg backdrop-blur-sm bg-background/80" data-magicpath-id="16" data-magicpath-path="MindMapCanvas.tsx">
-          <ZoomIn className="h-4 w-4" data-magicpath-id="17" data-magicpath-path="MindMapCanvas.tsx" />
+    }}>
+        <Button size="icon" variant="secondary" onClick={zoomIn} aria-label="Zoom in" className="shadow-lg backdrop-blur-sm bg-background/80">
+          <ZoomIn className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" onClick={zoomOut} aria-label="Zoom out" className="shadow-lg backdrop-blur-sm bg-background/80" data-magicpath-id="18" data-magicpath-path="MindMapCanvas.tsx">
-          <ZoomOut className="h-4 w-4" data-magicpath-id="19" data-magicpath-path="MindMapCanvas.tsx" />
+        <Button size="icon" variant="secondary" onClick={zoomOut} aria-label="Zoom out" className="shadow-lg backdrop-blur-sm bg-background/80">
+          <ZoomOut className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" onClick={fitToScreen} aria-label="Fit to screen" className="shadow-lg backdrop-blur-sm bg-background/80" data-magicpath-id="20" data-magicpath-path="MindMapCanvas.tsx">
-          <Maximize2 className="h-4 w-4" data-magicpath-id="21" data-magicpath-path="MindMapCanvas.tsx" />
+        <Button size="icon" variant="secondary" onClick={fitToScreen} aria-label="Fit to screen" className="shadow-lg backdrop-blur-sm bg-background/80">
+          <Maximize2 className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="secondary" onClick={resetView} aria-label="Reset view" className="shadow-lg backdrop-blur-sm bg-background/80" data-magicpath-id="22" data-magicpath-path="MindMapCanvas.tsx">
-          <RotateCcw className="h-4 w-4" data-magicpath-id="23" data-magicpath-path="MindMapCanvas.tsx" />
+        <Button size="icon" variant="secondary" onClick={resetView} aria-label="Reset view" className="shadow-lg backdrop-blur-sm bg-background/80">
+          <RotateCcw className="h-4 w-4" />
         </Button>
       </motion.div>
       
       {/* Screen reader description */}
-      <div id="mindmap-description" className="sr-only" data-magicpath-id="24" data-magicpath-path="MindMapCanvas.tsx">
+      <div id="mindmap-description" className="sr-only">
         Interactive mind map of the Shurangama Sutra. Use arrow keys to pan, plus and minus to zoom, 
         Enter or Space to expand/collapse nodes. Tab to navigate between nodes.
       </div>
       
       {/* Search results announcement */}
-      {searchQuery && <div className="sr-only" role="status" aria-live="polite" data-magicpath-id="25" data-magicpath-path="MindMapCanvas.tsx">
+      {searchQuery && <div className="sr-only" role="status" aria-live="polite">
           {nodePositions.filter(({
         node
       }) => isHighlighted(node)).length} nodes match "{searchQuery}"

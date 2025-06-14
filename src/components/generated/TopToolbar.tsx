@@ -95,32 +95,32 @@ export default function TopToolbar({
     y: 0
   }} transition={{
     duration: 0.3
-  }} data-magicpath-id="0" data-magicpath-path="TopToolbar.tsx">
+  }}>
       {/* Platform Title */}
-      <div className="flex items-center" data-magicpath-id="1" data-magicpath-path="TopToolbar.tsx">
+      <div className="flex items-center">
         <motion.h1 className="text-xl md:text-2xl font-bold text-foreground" style={{
         fontFamily: "'DM Sans', system-ui, sans-serif"
       }} whileHover={{
         scale: 1.02
       }} transition={{
         duration: 0.2
-      }} data-magicpath-id="2" data-magicpath-path="TopToolbar.tsx">
+      }}>
           楞嚴經智慧平台
         </motion.h1>
       </div>
 
       {/* Search Bar */}
-      <div className="flex-1 max-w-md mx-4 md:mx-8 relative" data-magicpath-id="3" data-magicpath-path="TopToolbar.tsx">
-        <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen} data-magicpath-id="4" data-magicpath-path="TopToolbar.tsx">
-          <PopoverTrigger asChild data-magicpath-id="5" data-magicpath-path="TopToolbar.tsx">
-            <div className="relative" data-magicpath-id="6" data-magicpath-path="TopToolbar.tsx">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" data-magicpath-id="7" data-magicpath-path="TopToolbar.tsx" />
-              <Input ref={searchInputRef} type="text" placeholder="搜尋經文內容..." value={searchQuery} onChange={e => handleSearchChange(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setIsSearchOpen(searchQuery.length > 0)} className={cn("pl-10 pr-4 h-10 w-full", "transition-all duration-200", "focus:ring-2 focus:ring-primary/20 focus:border-primary", "hover:border-primary/50")} aria-label="搜尋經文內容" aria-expanded={isSearchOpen} aria-haspopup="listbox" role="combobox" data-magicpath-id="8" data-magicpath-path="TopToolbar.tsx" />
+      <div className="flex-1 max-w-md mx-4 md:mx-8 relative">
+        <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+          <PopoverTrigger asChild>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input ref={searchInputRef} type="text" placeholder="搜尋經文內容..." value={searchQuery} onChange={e => handleSearchChange(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setIsSearchOpen(searchQuery.length > 0)} className={cn("pl-10 pr-4 h-10 w-full", "transition-all duration-200", "focus:ring-2 focus:ring-primary/20 focus:border-primary", "hover:border-primary/50")} aria-label="搜尋經文內容" aria-expanded={isSearchOpen} aria-haspopup="listbox" role="combobox" />
             </div>
           </PopoverTrigger>
           
-          <AnimatePresence data-magicpath-id="9" data-magicpath-path="TopToolbar.tsx">
-            {isSearchOpen && filteredSuggestions.length > 0 && <PopoverContent className="w-full p-0 mt-1" align="start" side="bottom" asChild data-magicpath-id="10" data-magicpath-path="TopToolbar.tsx">
+          <AnimatePresence>
+            {isSearchOpen && filteredSuggestions.length > 0 && <PopoverContent className="w-full p-0 mt-1" align="start" side="bottom" asChild>
                 <motion.div initial={{
               opacity: 0,
               y: -10,
@@ -135,13 +135,13 @@ export default function TopToolbar({
               scale: 0.95
             }} transition={{
               duration: 0.2
-            }} data-magicpath-id="11" data-magicpath-path="TopToolbar.tsx">
-                  <Command data-magicpath-id="12" data-magicpath-path="TopToolbar.tsx">
-                    <CommandList data-magicpath-id="13" data-magicpath-path="TopToolbar.tsx">
-                      <CommandEmpty data-magicpath-id="14" data-magicpath-path="TopToolbar.tsx">沒有找到相關結果</CommandEmpty>
-                      <CommandGroup data-magicpath-id="15" data-magicpath-path="TopToolbar.tsx">
-                        {filteredSuggestions.map((suggestion, index) => <CommandItem key={suggestion} value={suggestion} onSelect={() => handleSuggestionSelect(suggestion)} className={cn("cursor-pointer transition-colors duration-150", selectedIndex === index && "bg-accent")} aria-selected={selectedIndex === index} data-magicpath-id="16" data-magicpath-path="TopToolbar.tsx">
-                            <Search className="mr-2 h-4 w-4 text-muted-foreground" data-magicpath-id="17" data-magicpath-path="TopToolbar.tsx" />
+            }}>
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>沒有找到相關結果</CommandEmpty>
+                      <CommandGroup>
+                        {filteredSuggestions.map((suggestion, index) => <CommandItem key={suggestion} value={suggestion} onSelect={() => handleSuggestionSelect(suggestion)} className={cn("cursor-pointer transition-colors duration-150", selectedIndex === index && "bg-accent")} aria-selected={selectedIndex === index}>
+                            <Search className="mr-2 h-4 w-4 text-muted-foreground" />
                             {suggestion}
                           </CommandItem>)}
                       </CommandGroup>
@@ -153,21 +153,21 @@ export default function TopToolbar({
         </Popover>
 
         {/* Search results announcement for screen readers */}
-        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true" data-magicpath-id="18" data-magicpath-path="TopToolbar.tsx">
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {isSearchOpen && filteredSuggestions.length > 0 && `找到 ${filteredSuggestions.length} 個建議`}
         </div>
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-2" data-magicpath-id="19" data-magicpath-path="TopToolbar.tsx">
+      <div className="flex items-center gap-2">
         {/* Theme Toggle */}
         <motion.div whileHover={{
         scale: 1.05
       }} whileTap={{
         scale: 0.95
-      }} data-magicpath-id="20" data-magicpath-path="TopToolbar.tsx">
-          <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label={isDarkMode ? "切換到淺色模式" : "切換到深色模式"} data-magicpath-id="21" data-magicpath-path="TopToolbar.tsx">
-            <AnimatePresence mode="wait" data-magicpath-id="22" data-magicpath-path="TopToolbar.tsx">
+      }}>
+          <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label={isDarkMode ? "切換到淺色模式" : "切換到深色模式"}>
+            <AnimatePresence mode="wait">
               {isDarkMode ? <motion.div key="sun" initial={{
               rotate: -90,
               opacity: 0
@@ -179,8 +179,8 @@ export default function TopToolbar({
               opacity: 0
             }} transition={{
               duration: 0.3
-            }} data-magicpath-id="23" data-magicpath-path="TopToolbar.tsx">
-                  <Sun className="h-5 w-5" data-magicpath-id="24" data-magicpath-path="TopToolbar.tsx" />
+            }}>
+                  <Sun className="h-5 w-5" />
                 </motion.div> : <motion.div key="moon" initial={{
               rotate: 90,
               opacity: 0
@@ -192,54 +192,54 @@ export default function TopToolbar({
               opacity: 0
             }} transition={{
               duration: 0.3
-            }} data-magicpath-id="25" data-magicpath-path="TopToolbar.tsx">
-                  <Moon className="h-5 w-5" data-magicpath-id="26" data-magicpath-path="TopToolbar.tsx" />
+            }}>
+                  <Moon className="h-5 w-5" />
                 </motion.div>}
             </AnimatePresence>
           </Button>
         </motion.div>
 
         {/* About Button */}
-        <Dialog open={aboutOpen} onOpenChange={setAboutOpen} data-magicpath-id="27" data-magicpath-path="TopToolbar.tsx">
-          <DialogTrigger asChild data-magicpath-id="28" data-magicpath-path="TopToolbar.tsx">
+        <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
+          <DialogTrigger asChild>
             <motion.div whileHover={{
             scale: 1.05
           }} whileTap={{
             scale: 0.95
-          }} data-magicpath-id="29" data-magicpath-path="TopToolbar.tsx">
-              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label="關於平台" data-magicpath-id="30" data-magicpath-path="TopToolbar.tsx">
-                <Info className="h-5 w-5" data-magicpath-id="31" data-magicpath-path="TopToolbar.tsx" />
+          }}>
+              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label="關於平台">
+                <Info className="h-5 w-5" />
               </Button>
             </motion.div>
           </DialogTrigger>
           
-          <DialogContent className="sm:max-w-md" data-magicpath-id="32" data-magicpath-path="TopToolbar.tsx">
-            <DialogHeader data-magicpath-id="33" data-magicpath-path="TopToolbar.tsx">
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
               <DialogTitle className="text-xl font-bold" style={{
               fontFamily: "'DM Sans', system-ui, sans-serif"
-            }} data-magicpath-id="34" data-magicpath-path="TopToolbar.tsx">
+            }}>
                 關於楞嚴經智慧平台
               </DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4 py-4" data-magicpath-id="35" data-magicpath-path="TopToolbar.tsx">
-              <p className="text-sm text-muted-foreground leading-relaxed" data-magicpath-id="36" data-magicpath-path="TopToolbar.tsx">
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 本平台致力於提供現代化的佛經學習體驗，結合傳統經典與現代科技，
                 幫助學習者更深入地理解楞嚴經的智慧。
               </p>
               
-              <div className="space-y-2" data-magicpath-id="37" data-magicpath-path="TopToolbar.tsx">
-                <h4 className="font-semibold text-sm" data-magicpath-id="38" data-magicpath-path="TopToolbar.tsx">主要功能</h4>
-                <ul className="text-sm text-muted-foreground space-y-1" data-magicpath-id="39" data-magicpath-path="TopToolbar.tsx">
-                  <li data-magicpath-id="40" data-magicpath-path="TopToolbar.tsx">• 互動式心智圖導覽</li>
-                  <li data-magicpath-id="41" data-magicpath-path="TopToolbar.tsx">• 原文與註釋對照</li>
-                  <li data-magicpath-id="42" data-magicpath-path="TopToolbar.tsx">• AI 智能分析解讀</li>
-                  <li data-magicpath-id="43" data-magicpath-path="TopToolbar.tsx">• 全文搜尋功能</li>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">主要功能</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• 互動式心智圖導覽</li>
+                  <li>• 原文與註釋對照</li>
+                  <li>• AI 智能分析解讀</li>
+                  <li>• 全文搜尋功能</li>
                 </ul>
               </div>
               
-              <div className="pt-4 border-t" data-magicpath-id="44" data-magicpath-path="TopToolbar.tsx">
-                <p className="text-xs text-muted-foreground" data-magicpath-id="45" data-magicpath-path="TopToolbar.tsx">
+              <div className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
                   版本 1.0.0 | 開發團隊製作
                 </p>
               </div>

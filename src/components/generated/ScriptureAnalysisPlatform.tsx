@@ -134,15 +134,15 @@ export default function ScriptureAnalysisPlatform({
     opacity: 1
   }} transition={{
     duration: 0.3
-  }} data-magicpath-id="0" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+  }}>
       {/* Top Toolbar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" data-magicpath-id="1" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-        <TopToolbar isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} searchQuery={searchQuery} onSearchChange={handleSearch} data-magicpath-id="2" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <TopToolbar isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} searchQuery={searchQuery} onSearchChange={handleSearch} />
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full" data-magicpath-id="3" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-        <AnimatePresence mode="wait" data-magicpath-id="4" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+      <main className="flex-1 w-full">
+        <AnimatePresence mode="wait">
           {isMobile ?
         // Mobile Layout - Vertical Stack
         <motion.div key="mobile" className="flex flex-col min-h-[calc(100vh-4rem)]" initial={{
@@ -156,15 +156,15 @@ export default function ScriptureAnalysisPlatform({
           y: -20
         }} transition={{
           duration: 0.3
-        }} data-magicpath-id="5" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+        }}>
               {/* Mind Map Section - Collapsible on Mobile */}
-              <section className="w-full h-80 border-b border-border" aria-label="Scripture Mind Map" data-magicpath-id="6" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                <MindMapCanvas searchQuery={searchQuery} data-magicpath-id="7" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
+              <section className="w-full h-80 border-b border-border" aria-label="Scripture Mind Map">
+                <MindMapCanvas searchQuery={searchQuery} />
               </section>
 
               {/* Content Panel Section */}
-              <aside className="flex-1 w-full p-4" aria-label="Scripture Analysis Content" data-magicpath-id="8" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                <ContentPanel searchQuery={searchQuery} data-magicpath-id="9" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
+              <aside className="flex-1 w-full p-4" aria-label="Scripture Analysis Content">
+                <ContentPanel searchQuery={searchQuery} />
               </aside>
             </motion.div> :
         // Desktop/Tablet Layout - Split Screen
@@ -179,18 +179,18 @@ export default function ScriptureAnalysisPlatform({
           scale: 0.98
         }} transition={{
           duration: 0.3
-        }} data-magicpath-id="10" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+        }}>
               {/* Left Panel - Mind Map (60%) */}
-              <section className="relative border-r border-border overflow-hidden" aria-label="Scripture Mind Map" data-magicpath-id="11" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                <div className="absolute inset-0" data-magicpath-id="12" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                  <MindMapCanvas searchQuery={searchQuery} data-magicpath-id="13" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
+              <section className="relative border-r border-border overflow-hidden" aria-label="Scripture Mind Map">
+                <div className="absolute inset-0">
+                  <MindMapCanvas searchQuery={searchQuery} />
                 </div>
               </section>
 
               {/* Right Panel - Content Cards (40%) */}
-              <aside className="relative overflow-hidden" aria-label="Scripture Analysis Content" data-magicpath-id="14" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                <section className="absolute inset-0 flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12 xl:px-16" aria-label="Scripture Analysis Content" data-magicpath-id="15" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                  <ContentPanel searchQuery={searchQuery} data-magicpath-id="16" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
+              <aside className="relative overflow-hidden" aria-label="Scripture Analysis Content">
+                <section className="absolute inset-0 flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12 xl:px-16" aria-label="Scripture Analysis Content">
+                  <ContentPanel searchQuery={searchQuery} />
                 </section>
               </aside>
             </motion.div>}
@@ -198,7 +198,7 @@ export default function ScriptureAnalysisPlatform({
       </main>
 
       {/* Focus Management for Accessibility */}
-      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true" data-magicpath-id="17" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {searchQuery && `Searching for: ${searchQuery}`}
         {isDarkMode ? "Dark mode enabled" : "Light mode enabled"}
       </div>
