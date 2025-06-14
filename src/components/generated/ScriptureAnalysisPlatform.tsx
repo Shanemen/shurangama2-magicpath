@@ -189,9 +189,9 @@ export default function ScriptureAnalysisPlatform({
 
               {/* Right Panel - Content Cards (40%) */}
               <aside className="relative overflow-hidden" aria-label="Scripture Analysis Content" data-magicpath-id="14" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
-                <div className="absolute inset-0 p-6" data-magicpath-id="15" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
+                <section className="absolute inset-0 flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12 xl:px-16" aria-label="Scripture Analysis Content" data-magicpath-id="15" data-magicpath-path="ScriptureAnalysisPlatform.tsx">
                   <ContentPanel searchQuery={searchQuery} data-magicpath-id="16" data-magicpath-path="ScriptureAnalysisPlatform.tsx" />
-                </div>
+                </section>
               </aside>
             </motion.div>}
         </AnimatePresence>
