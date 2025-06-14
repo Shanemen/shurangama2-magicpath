@@ -162,21 +162,33 @@ export default function ContentPanel({
         duration: 0.3,
         delay: 0.2
       }} data-magicpath-id="15" data-magicpath-path="ContentPanel.tsx">
-          <Card className="border-l-4 border-l-primary transition-all duration-300 hover:shadow-lg focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20" data-magicpath-id="16" data-magicpath-path="ContentPanel.tsx">
-            <CardHeader className="pb-4" data-magicpath-id="17" data-magicpath-path="ContentPanel.tsx">
-              <CardTitle className="text-lg font-semibold text-foreground" data-magicpath-id="18" data-magicpath-path="ContentPanel.tsx">
+          <Card className="border-none shadow-none bg-card/80 dark:bg-card/60 rounded-2xl px-0 py-0 md:p-0 transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20" style={{
+          boxShadow: '0 2px 24px 0 oklch(0.1649 0.0352 281.8285 / 0.08), 0 1.5px 4px 0 oklch(0.1649 0.0352 281.8285 / 0.04)'
+        }} data-magicpath-id="16" data-magicpath-path="ContentPanel.tsx">
+            <CardHeader className="pb-2 pt-6 px-6 md:px-8" data-magicpath-id="17" data-magicpath-path="ContentPanel.tsx">
+              <CardTitle className="text-lg md:text-xl font-semibold text-foreground tracking-tight mb-1 flex items-center gap-2" style={{
+              fontFamily: 'Outfit, var(--font-sans)'
+            }} data-magicpath-id="18" data-magicpath-path="ContentPanel.tsx">
                 {highlightText(commentary.title, searchQuery)}
               </CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground" data-magicpath-id="19" data-magicpath-path="ContentPanel.tsx">
-                <span data-magicpath-id="20" data-magicpath-path="ContentPanel.tsx">{commentary.author}</span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1 mb-0.5" data-magicpath-id="19" data-magicpath-path="ContentPanel.tsx">
+                <span className="font-medium text-sidebar-primary" data-magicpath-id="20" data-magicpath-path="ContentPanel.tsx">
+                  {commentary.author}
+                </span>
                 {commentary.source && <>
-                    <span data-magicpath-id="21" data-magicpath-path="ContentPanel.tsx">•</span>
-                    <span data-magicpath-id="22" data-magicpath-path="ContentPanel.tsx">{commentary.source}</span>
+                    <span aria-hidden="true" className="mx-1 opacity-60" data-magicpath-id="21" data-magicpath-path="ContentPanel.tsx">
+                      &bull;
+                    </span>
+                    <span className="text-xs md:text-sm text-muted-foreground/80" data-magicpath-id="22" data-magicpath-path="ContentPanel.tsx">
+                      {commentary.source}
+                    </span>
                   </>}
               </div>
             </CardHeader>
-            <CardContent className="pt-0" data-magicpath-id="23" data-magicpath-path="ContentPanel.tsx">
-              <blockquote className="text-base leading-relaxed text-foreground max-w-[70ch] border-l-2 border-muted pl-4 italic" data-magicpath-id="24" data-magicpath-path="ContentPanel.tsx">
+            <CardContent className="pt-0 pb-6 px-6 md:px-8" data-magicpath-id="23" data-magicpath-path="ContentPanel.tsx">
+              <blockquote className="text-base md:text-lg leading-relaxed text-foreground max-w-[60ch] border-l-4 border-sidebar-accent/60 pl-6 italic bg-muted/30 rounded-lg py-3 px-0" style={{
+              fontFamily: 'Outfit, var(--font-sans)'
+            }} data-magicpath-id="24" data-magicpath-path="ContentPanel.tsx">
                 {highlightText(commentary.text, searchQuery)}
               </blockquote>
             </CardContent>
