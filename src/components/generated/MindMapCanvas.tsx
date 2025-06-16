@@ -7,88 +7,34 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ZoomIn, ZoomOut, RotateCcw, Maximize2 } from "lucide-react";
-export interface MindMapNode {
-  id: string;
-  title: string;
-  pageRef?: string;
-  lectureNumber?: number;
-  children?: MindMapNode[];
-  isExpanded?: boolean;
-}
+import { useScriptureData } from "@/hooks/useScriptureData";
+import { type MindMapNodeWithContent } from "@/lib/supabase";
+
 export interface MindMapCanvasProps {
   searchQuery?: string;
-  data?: MindMapNode[];
+  onNodeSelect?: (nodeId: string) => void;
   className?: string;
+  data?: MindMapNodeWithContent[];
+  loading?: boolean;
+  error?: string | null;
 }
 
-// Default data structure for the Shurangama Sutra - only root expanded by default
-const defaultData: MindMapNode[] = [{
-  id: "root",
-  title: "楞嚴經",
-  pageRef: "P.1",
-  lectureNumber: 1,
-  isExpanded: true, // Only root is expanded by default
-  children: [{
-    id: "chapter1",
-    title: "第一章 - 七處徵心",
-    pageRef: "P.15",
-    lectureNumber: 2,
-    isExpanded: false, // All chapters start collapsed
-    children: [{
-      id: "section1-1",
-      title: "阿難示墮",
-      pageRef: "P.18",
-      lectureNumber: 3,
-      children: []
-    }, {
-      id: "section1-2",
-      title: "佛問心目",
-      pageRef: "P.25",
-      lectureNumber: 4,
-      children: []
-    }]
-  }, {
-    id: "chapter2",
-    title: "第二章 - 十番顯見",
-    pageRef: "P.89",
-    lectureNumber: 8,
-    isExpanded: false, // All chapters start collapsed
-    children: [{
-      id: "section2-1",
-      title: "顯見不動",
-      pageRef: "P.95",
-      lectureNumber: 9,
-      children: []
-    }, {
-      id: "section2-2",
-      title: "顯見不滅",
-      pageRef: "P.108",
-      lectureNumber: 10,
-      children: []
-    }]
-  }, {
-    id: "chapter3",
-    title: "第三章 - 辨識真妄",
-    pageRef: "P.159",
-    lectureNumber: 15,
-    isExpanded: false, // All chapters start collapsed
-    children: [{
-      id: "section3-1",
-      title: "識精元明",
-      pageRef: "P.165",
-      lectureNumber: 16,
-      children: []
-    }]
-  }]
-}];
 export default function MindMapCanvas({
   searchQuery = "",
-  data = defaultData,
-  className
+  onNodeSelect,
+  className,
+  data: propData,
+  loading: propLoading,
+  error: propError
 }: MindMapCanvasProps) {
+  // 如果没有传入数据，则使用hook获取
+  const hookData = useScriptureData();
+  const data = propData || hookData.data;
+  const loading = propLoading !== undefined ? propLoading : hookData.loading;
+  const error = propError !== undefined ? propError : hookData.error;
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes] = useState<MindMapNode[]>(data);
+  const [nodes, setNodes] = useState<MindMapNodeWithContent[]>(data);
   const [transform, setTransform] = useState({
     x: 0,
     y: 0,
@@ -108,7 +54,7 @@ export default function MindMapCanvas({
   const siblingSpacing = 150;
 
   // Calculate the total height needed by a subtree (including all expanded descendants)
-  const calculateSubtreeHeight = useCallback((node: MindMapNode): number => {
+  const calculateSubtreeHeight = useCallback((node: MindMapNodeWithContent): number => {
     if (!node.isExpanded || !node.children || node.children.length === 0) {
       return nodeHeight;
     }
@@ -128,14 +74,14 @@ export default function MindMapCanvas({
   }, []);
 
   // Calculate node positions with proper subtree spacing to prevent overlaps
-  const calculateLayout = useCallback((nodeList: MindMapNode[], level = 0, startY = 0): Array<{
-    node: MindMapNode;
+  const calculateLayout = useCallback((nodeList: MindMapNodeWithContent[], level = 0, startY = 0): Array<{
+    node: MindMapNodeWithContent;
     x: number;
     y: number;
     level: number;
   }> => {
     const positions: Array<{
-      node: MindMapNode;
+      node: MindMapNodeWithContent;
       x: number;
       y: number;
       level: number;
@@ -179,11 +125,21 @@ export default function MindMapCanvas({
     
     return positions;
   }, [calculateSubtreeHeight]);
-  const nodePositions = calculateLayout(nodes);
+  // 监听data变化更新本地nodes状态
+  useEffect(() => {
+    setNodes(data);
+  }, [data]);
+
+  // 处理搜索 - 现在由父组件处理
+  // useEffect(() => {
+  //   if (searchQuery) {
+  //     searchNodes(searchQuery);
+  //   }
+  // }, [searchQuery, searchNodes]);
 
   // Toggle node expansion
   const toggleNode = useCallback((nodeId: string) => {
-    const updateNodes = (nodeList: MindMapNode[]): MindMapNode[] => {
+    const updateNodes = (nodeList: MindMapNodeWithContent[]): MindMapNodeWithContent[] => {
       return nodeList.map(node => {
         if (node.id === nodeId) {
           return {
@@ -235,7 +191,39 @@ export default function MindMapCanvas({
         }
       }
     }, 100); // Small delay to ensure layout is calculated
-  }, [nodes]);
+  }, [nodes, calculateLayout]);
+
+  const nodePositions = calculateLayout(nodes);
+
+  // 处理节点点击 - 选择节点并通知父组件
+  const handleNodeClick = useCallback((nodeId: string) => {
+    onNodeSelect?.(nodeId);
+    toggleNode(nodeId);
+  }, [onNodeSelect, toggleNode]);
+
+  // 显示loading状态
+  if (loading) {
+    return (
+      <div className={cn("relative w-full h-full overflow-hidden bg-background flex items-center justify-center", className)}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">正在加载楞严经数据...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 显示错误状态
+  if (error) {
+    return (
+      <div className={cn("relative w-full h-full overflow-hidden bg-background flex items-center justify-center", className)}>
+        <div className="text-center">
+          <p className="text-destructive mb-2">❌ 加载失败</p>
+          <p className="text-muted-foreground text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Pan and zoom handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -379,7 +367,7 @@ export default function MindMapCanvas({
   };
 
   // Check if node matches search query
-  const isHighlighted = (node: MindMapNode) => {
+  const isHighlighted = (node: MindMapNodeWithContent) => {
     if (!searchQuery) return false;
     return node.title.toLowerCase().includes(searchQuery.toLowerCase()) || node.pageRef?.toLowerCase().includes(searchQuery.toLowerCase());
   };
@@ -443,7 +431,7 @@ export default function MindMapCanvas({
           }}>
                 <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200", highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border", isFocused && "stroke-primary")} onClick={(e) => {
                   e.stopPropagation();
-                  toggleNode(node.id);
+                  handleNodeClick(node.id);
                 }} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
               scale: 1.02
             }} whileTap={{
