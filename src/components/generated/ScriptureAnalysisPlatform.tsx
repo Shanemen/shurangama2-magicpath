@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MindMapCanvas from "./MindMapCanvas";
 import ContentPanel from "./ContentPanel";
 import TopToolbar from "./TopToolbar";
-import ScriptureContentDisplay from "../ScriptureContent";
+// import ScriptureContentDisplay from "../ScriptureContent"; // 不再需要浮动经文组件
 import { useScriptureData } from "@/hooks/useScriptureData";
 export interface ScriptureAnalysisPlatformProps {
   className?: string;
@@ -18,10 +18,24 @@ export default function ScriptureAnalysisPlatform({
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [showScriptureContent, setShowScriptureContent] = useState(false);
+  // const [showScriptureContent, setShowScriptureContent] = useState(false); // 不再需要
+  
+  // 侧边面板状态管理
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [selectedCommentaryNodeId, setSelectedCommentaryNodeId] = useState<string | null>(null);
   
   // 使用经文数据hook
   const { data, loading, error, selectedNode, selectedNodeContent, selectNode } = useScriptureData();
+
+  // 🔍 DEBUG: 打印关键状态信息
+  console.log('🔍 ScriptureAnalysisPlatform Debug:', {
+    isMobile,
+    loading,
+    error,
+    dataLength: data?.length,
+    data: data,
+    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined'
+  });
 
   // Handle responsive breakpoints
   useEffect(() => {
@@ -135,28 +149,30 @@ export default function ScriptureAnalysisPlatform({
 
   // 处理节点选择 - 如果节点有内容则显示经文
   const handleNodeSelect = (nodeId: string) => {
-    console.log('🎯 平台层处理节点选择:', nodeId)
     selectNode(nodeId)
   };
 
-  // 监听selectedNodeContent变化，自动显示经文
-  useEffect(() => {
-    console.log('📋 selectedNodeContent 变化:', selectedNodeContent)
-    console.log('📋 selectedNode 变化:', selectedNode)
-    console.log('📋 showScriptureContent 状态:', showScriptureContent)
-    if (selectedNodeContent) {
-      console.log('🎉 显示经文弹窗!')
-      setShowScriptureContent(true);
-    }
-  }, [selectedNodeContent, selectedNode, showScriptureContent]);
-
-  // 关闭经文显示
-  const handleCloseScriptureContent = () => {
-    setShowScriptureContent(false);
-    // 可选：清空选中的内容，这样下次点击同一个节点时会重新显示
-    // 如果你希望保持选中状态，可以注释掉下面这行
-    // setSelectedNodeContent(null);
+  // 处理注释请求 - 灯泡图标点击
+  const handleCommentaryRequest = (nodeId: string) => {
+    setSelectedCommentaryNodeId(nodeId);
+    setSidebarExpanded(true);
+    console.log('📖 请求显示注释，节点ID:', nodeId);
   };
+
+  // 经文现在作为子节点显示，不再需要浮动组件
+  // useEffect(() => {
+  //   if (selectedNodeContent) {
+  //     setShowScriptureContent(true);
+  //   }
+  // }, [selectedNodeContent, selectedNode, showScriptureContent]);
+
+  // 经文显示相关函数不再需要
+  // const handleCloseScriptureContent = () => {
+  //   setShowScriptureContent(false);
+  //   // 可选：清空选中的内容，这样下次点击同一个节点时会重新显示
+  //   // 如果你希望保持选中状态，可以注释掉下面这行
+  //   // setSelectedNodeContent(null);
+  // };
   return <motion.div className={cn("min-h-screen w-full bg-background text-foreground transition-colors duration-300", "font-sans antialiased", className)} style={{
     fontFamily: "'DM Sans', system-ui, sans-serif"
   }} initial={{
@@ -172,9 +188,9 @@ export default function ScriptureAnalysisPlatform({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full bg-blue-100 dark:bg-blue-900 min-h-[calc(100vh-4rem)]">
         <AnimatePresence mode="wait">
-          {isMobile ?
+          {false ? // 暂时强制使用桌面布局进行调试
         // Mobile Layout - Vertical Stack
         <motion.div key="mobile" className="flex flex-col min-h-[calc(100vh-4rem)]" initial={{
           opacity: 0,
@@ -193,6 +209,7 @@ export default function ScriptureAnalysisPlatform({
                 <MindMapCanvas 
                   searchQuery={searchQuery} 
                   onNodeSelect={handleNodeSelect}
+                  onCommentaryRequest={handleCommentaryRequest}
                   data={data}
                   loading={loading}
                   error={error}
@@ -204,8 +221,8 @@ export default function ScriptureAnalysisPlatform({
                 <ContentPanel searchQuery={searchQuery} />
               </aside>
             </motion.div> :
-        // Desktop/Tablet Layout - Split Screen
-        <motion.div key="desktop" className="grid grid-cols-[3fr_2fr] min-h-[calc(100vh-4rem)]" initial={{
+        // Desktop/Tablet Layout - Split Screen with Expandable Sidebar
+        <motion.div key="desktop" className="relative min-h-[calc(100vh-4rem)] h-[calc(100vh-4rem)]" initial={{
           opacity: 0,
           scale: 0.98
         }} animate={{
@@ -217,12 +234,13 @@ export default function ScriptureAnalysisPlatform({
         }} transition={{
           duration: 0.3
         }}>
-              {/* Left Panel - Mind Map (60%) */}
-              <section className="relative border-r border-border overflow-hidden" aria-label="Scripture Mind Map">
-                <div className="absolute inset-0">
+              {/* Main Content - Mind Map */}
+              <section className="relative w-full h-full overflow-hidden bg-red-100 dark:bg-red-900" aria-label="Scripture Mind Map">
+                <div className="absolute inset-0 bg-green-100 dark:bg-green-900">
                   <MindMapCanvas 
                     searchQuery={searchQuery} 
                     onNodeSelect={handleNodeSelect}
+                    onCommentaryRequest={handleCommentaryRequest}
                     data={data}
                     loading={loading}
                     error={error}
@@ -230,12 +248,39 @@ export default function ScriptureAnalysisPlatform({
                 </div>
               </section>
 
-              {/* Right Panel - Content Cards (40%) */}
-              <aside className="relative overflow-hidden" aria-label="Scripture Analysis Content">
-                <section className="absolute inset-0 flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12 xl:px-16" aria-label="Scripture Analysis Content">
-                  <ContentPanel searchQuery={searchQuery} />
-                </section>
-              </aside>
+              {/* Expandable Commentary Sidebar */}
+              <AnimatePresence mode="wait">
+                {sidebarExpanded && (
+                  <motion.aside 
+                    className="absolute top-0 right-0 w-96 h-full bg-background/95 backdrop-blur-sm border-l border-border shadow-xl z-40"
+                    initial={{ x: '100%', opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: '100%', opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    aria-label="Commentary Sidebar"
+                  >
+                    {/* Sidebar Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-border">
+                      <h2 className="text-lg font-semibold text-foreground">📖 经文注释</h2>
+                      <button
+                        onClick={() => setSidebarExpanded(false)}
+                        className="p-2 rounded-md hover:bg-muted transition-colors"
+                        aria-label="关闭侧边栏"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    
+                    {/* Sidebar Content */}
+                    <div className="flex-1 overflow-y-auto p-4">
+                      <ContentPanel 
+                        searchQuery={searchQuery}
+                        className="h-auto"
+                      />
+                    </div>
+                  </motion.aside>
+                )}
+              </AnimatePresence>
             </motion.div>}
         </AnimatePresence>
       </main>
@@ -246,27 +291,14 @@ export default function ScriptureAnalysisPlatform({
         {isDarkMode ? "Dark mode enabled" : "Light mode enabled"}
       </div>
 
-      {/* 经文内容显示组件 */}
-      <ScriptureContentDisplay
+      {/* 经文内容现在通过子节点显示，不再需要浮动组件 */}
+      {/* <ScriptureContentDisplay
         content={selectedNodeContent}
         nodeTitle={selectedNode?.title}
         isVisible={showScriptureContent}
         onClose={handleCloseScriptureContent}
-      />
+      /> */}
 
-      {/* 临时调试信息 */}
-      {selectedNodeContent && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded z-[9999]">
-          <p>调试: 有经文内容!</p>
-          <p>显示状态: {showScriptureContent ? '是' : '否'}</p>
-          <p>节点: {selectedNode?.title}</p>
-          <button 
-            onClick={() => setShowScriptureContent(true)}
-            className="bg-white text-red-500 px-2 py-1 rounded mt-2"
-          >
-            强制显示
-          </button>
-        </div>
-      )}
+
     </motion.div>;
 }

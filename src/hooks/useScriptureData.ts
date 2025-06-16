@@ -1,6 +1,66 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, type ScriptureNode, type ScriptureContent, type Commentary, type MindMapNodeWithContent } from '../lib/supabase'
 
+// 默认测试数据 - 当数据库连接失败时使用
+const defaultTestData: MindMapNodeWithContent[] = [
+  {
+    id: 'root',
+    title: '大佛顶首楞严经',
+    pageRef: '',
+    lectureNumber: undefined,
+    children: [
+      {
+        id: 'xufen',
+        title: '序分',
+        children: [
+          {
+            id: 'zhengxinxu',
+            title: '证信序',
+            pageRef: 'P.123',
+            lectureNumber: 1,
+            content: {
+              original_text: '如是我闻，一时，佛在室罗筏城，祇桓精舍。'
+            },
+            children: [],
+            isExpanded: false
+          },
+          {
+            id: 'faqixu',
+            title: '发起序',
+            pageRef: 'P.125',
+            lectureNumber: 1,
+            content: {
+              original_text: '爾時世尊，從肉髻中，涌百寶光。光中涌出，千葉寶蓮。'
+            },
+            children: [],
+            isExpanded: false
+          }
+        ],
+        isExpanded: false
+      },
+      {
+        id: 'zhengzongfen',
+        title: '正宗分',
+        children: [
+          {
+            id: 'qichuxinxin',
+            title: '七處徵心',
+            pageRef: 'P.200',
+            lectureNumber: 5,
+            content: {
+              original_text: '阿難白佛言。世尊。我等今者。不知心目所在。'
+            },
+            children: [],
+            isExpanded: false
+          }
+        ],
+        isExpanded: false
+      }
+    ],
+    isExpanded: true
+  }
+];
+
 interface UseScriptureDataReturn {
   // 核心数据
   data: MindMapNodeWithContent[]
@@ -107,6 +167,31 @@ export function useScriptureData(): UseScriptureDataReturn {
 
       console.log('🔍 开始获取楞严经数据...')
 
+      // 检查环境变量是否存在
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.log('⚠️ 缺少Supabase环境变量，使用默认测试数据')
+        setData(defaultTestData)
+        
+        // 建立扁平映射便于搜索和查找
+        const flatMap = new Map<string, MindMapNodeWithContent>()
+        const flattenTree = (nodes: MindMapNodeWithContent[]) => {
+          nodes.forEach(node => {
+            flatMap.set(node.id, node)
+            if (node.children) {
+              flattenTree(node.children)
+            }
+          })
+        }
+        flattenTree(defaultTestData)
+        setNodeMap(flatMap)
+        
+        console.log('✅ 默认测试数据加载完成！', defaultTestData)
+        return
+      }
+
       // 并行获取节点和内容数据
       const [nodesResult, contentsResult] = await Promise.all([
         supabase
@@ -134,8 +219,23 @@ export function useScriptureData(): UseScriptureDataReturn {
       console.log('✅ 数据处理完成！', treeData)
 
     } catch (err) {
-      console.error('❌ 获取数据失败:', err)
-      setError(err instanceof Error ? err.message : '获取数据失败')
+      console.error('❌ 获取数据失败，使用默认测试数据:', err)
+      setData(defaultTestData)
+      
+      // 建立扁平映射便于搜索和查找
+      const flatMap = new Map<string, MindMapNodeWithContent>()
+      const flattenTree = (nodes: MindMapNodeWithContent[]) => {
+        nodes.forEach(node => {
+          flatMap.set(node.id, node)
+          if (node.children) {
+            flattenTree(node.children)
+          }
+        })
+      }
+      flattenTree(defaultTestData)
+      setNodeMap(flatMap)
+      
+      setError('数据库连接失败，使用演示数据')
     } finally {
       setLoading(false)
     }

@@ -1,8 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { ScrollText, BookOpen, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { type ScriptureContent } from '@/lib/supabase'
 
 interface ScriptureContentProps {
@@ -20,130 +18,89 @@ export default function ScriptureContentDisplay({
   onClose,
   className
 }: ScriptureContentProps) {
+  const [position, setPosition] = useState({ x: 400, y: 100 })
+
+  // 计算显示位置 - 基于屏幕右侧
+  useEffect(() => {
+    if (isVisible) {
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
+      const cardWidth = 320 // w-80 = 320px
+      const cardHeight = 384 // max-h-96 = 384px
+      
+      // 默认显示在右侧，留出一些边距
+      const defaultX = windowWidth - cardWidth - 40
+      const defaultY = Math.max(20, (windowHeight - cardHeight) / 2)
+      
+      setPosition({ x: defaultX, y: defaultY })
+    }
+  }, [isVisible])
+
   return (
     <AnimatePresence>
       {content && isVisible && (
-        <>
-          {/* 背景遮罩 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-            onClick={onClose}
-          />
+        <motion.div
+          initial={{ opacity: 0, x: 20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 20, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className={cn(
+            "fixed z-50 w-80 max-h-96 overflow-y-auto",
+            // 与节点相同的视觉风格 - 琥珀色主题
+            "bg-gradient-to-br from-amber-50/95 to-orange-50/95",
+            "dark:from-amber-950/95 dark:to-orange-950/95",
+            "backdrop-blur-sm shadow-xl",
+            "rounded-xl p-5",
+            // 无边框设计，但保持优雅的视觉层次
+            "border-0",
+            // 添加微妙的内阴影效果
+            "shadow-inner",
+            className
+          )}
+          style={{
+            left: position.x,
+            top: position.y,
+          }}
+        >
+          {/* 连接线指示器 - 指向左侧 */}
+          <div className="absolute -left-3 top-6 w-3 h-0.5 bg-amber-400 dark:bg-amber-500 rounded-full"></div>
           
-          {/* 弹窗内容 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className={cn(
-              "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2",
-              "w-full max-w-2xl max-h-[80vh] overflow-hidden",
-              "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950",
-              "border-2 border-amber-200 dark:border-amber-800",
-              "rounded-2xl shadow-2xl backdrop-blur-sm",
-              "z-50",
-              className
-            )}
-          >
-
-        {/* 头部 */}
-        <div className="flex items-center justify-between p-6 border-b border-amber-200 dark:border-amber-800">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900 rounded-lg">
-              <ScrollText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
-                经文内容
-              </h3>
-              {nodeTitle && (
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  {nodeTitle}
-                </p>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-amber-600 hover:text-amber-800 hover:bg-amber-100 dark:text-amber-400 dark:hover:text-amber-200 dark:hover:bg-amber-900"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* 经文内容 */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {/* 经文内容 */}
           <div className="space-y-4">
-            {/* 原文 */}
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                  原文
-                </span>
+            {/* 标题（可选） */}
+            {nodeTitle && (
+              <div className="text-sm font-medium text-amber-800 dark:text-amber-200 opacity-90 pb-2 border-b border-amber-200/50 dark:border-amber-700/50">
+                {nodeTitle}
               </div>
-              <div className="relative p-4 bg-white/50 dark:bg-amber-950/50 rounded-lg border border-amber-200 dark:border-amber-800">
-                {/* 装饰性引号 */}
-                <div className="absolute top-2 left-2 text-3xl text-amber-300 dark:text-amber-700 font-serif">
-                  "
-                </div>
-                <div className="absolute bottom-2 right-2 text-3xl text-amber-300 dark:text-amber-700 font-serif">
-                  "
-                </div>
-                
-                <p className="text-lg leading-relaxed text-amber-900 dark:text-amber-100 font-serif px-6 py-2">
+            )}
+            
+            {/* 原文显示区域 */}
+            <div className="relative">
+              {/* 装饰性引号 - 更精致的样式 */}
+              <div className="absolute -top-2 -left-2 text-3xl text-amber-300/70 dark:text-amber-600/70 font-serif leading-none">
+                "
+              </div>
+              <div className="absolute -bottom-3 -right-2 text-3xl text-amber-300/70 dark:text-amber-600/70 font-serif leading-none">
+                "
+              </div>
+              
+              {/* 原文内容 */}
+              <div className="relative bg-white/30 dark:bg-amber-900/20 rounded-lg p-4">
+                <p className="text-base leading-relaxed text-amber-900 dark:text-amber-100 font-serif px-2">
                   {content.original_text}
                 </p>
               </div>
             </div>
-
-            {/* 白话文（如果有的话） */}
-            {content.simplified_text && (
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    白话文
-                  </span>
-                </div>
-                <div className="p-4 bg-amber-100/50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <p className="text-base leading-relaxed text-amber-800 dark:text-amber-200">
-                    {content.simplified_text}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* 内容信息 */}
-            <div className="flex items-center justify-between pt-4 border-t border-amber-200 dark:border-amber-800">
-              <div className="text-xs text-amber-600 dark:text-amber-400">
-                内容序号: {content.content_order}
-              </div>
-              <div className="text-xs text-amber-600 dark:text-amber-400">
+            
+            {/* 底部信息 */}
+            <div className="flex justify-between items-center text-xs text-amber-600/80 dark:text-amber-400/80 pt-3 border-t border-amber-200/30 dark:border-amber-700/30">
+              <span>序号: {content.content_order}</span>
+              <span className="opacity-60">
                 {new Date(content.created_at).toLocaleDateString('zh-CN')}
-              </div>
+              </span>
             </div>
           </div>
-        </div>
-
-        {/* 底部操作区 */}
-        <div className="flex justify-end gap-3 p-6 border-t border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/50">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900"
-          >
-            关闭
-          </Button>
-        </div>
-          </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   )
