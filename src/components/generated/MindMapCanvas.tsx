@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ZoomIn, ZoomOut, RotateCcw, Maximize2 } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Lightbulb } from "lucide-react";
 import { useScriptureData } from "@/hooks/useScriptureData";
 import { type MindMapNodeWithContent } from "@/lib/supabase";
 
@@ -17,6 +17,7 @@ export interface MindMapCanvasProps {
   data?: MindMapNodeWithContent[];
   loading?: boolean;
   error?: string | null;
+  onCommentaryRequest?: (nodeId: string) => void;
 }
 
 export default function MindMapCanvas({
@@ -25,13 +26,25 @@ export default function MindMapCanvas({
   className,
   data: propData,
   loading: propLoading,
-  error: propError
+  error: propError,
+  onCommentaryRequest
 }: MindMapCanvasProps) {
   // 如果没有传入数据，则使用hook获取
   const hookData = useScriptureData();
   const data = propData || hookData.data;
   const loading = propLoading !== undefined ? propLoading : hookData.loading;
   const error = propError !== undefined ? propError : hookData.error;
+  
+  // 🔍 DEBUG: 打印MindMapCanvas状态
+  console.log('🔍 MindMapCanvas Debug:', {
+    loading,
+    error, 
+    dataLength: data?.length,
+    data: data,
+    propData: propData,
+    hookData: hookData.data
+  });
+
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<MindMapNodeWithContent[]>(data);
@@ -249,6 +262,12 @@ export default function MindMapCanvas({
     }
   }, [onNodeSelect, toggleNode, nodes]);
 
+  // 处理灯泡点击 - 请求显示注释
+  const handleCommentaryClick = useCallback((nodeId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡到节点点击
+    onCommentaryRequest?.(nodeId);
+  }, [onCommentaryRequest]);
+
   // 显示loading状态
   if (loading) {
     return (
@@ -296,7 +315,7 @@ export default function MindMapCanvas({
     setIsDragging(false);
   };
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
+    // 不使用preventDefault，而是通过其他方式防止默认滚动
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.max(0.1, Math.min(3, transform.scale * delta));
     setTransform(prev => ({
@@ -419,8 +438,18 @@ export default function MindMapCanvas({
     if (!searchQuery) return false;
     return node.title.toLowerCase().includes(searchQuery.toLowerCase()) || node.pageRef?.toLowerCase().includes(searchQuery.toLowerCase());
   };
-  return <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden bg-background", className)} role="application" aria-label="Shurangama Sutra Mind Map">
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" onClick={(e) => {
+  return <div 
+    ref={containerRef} 
+    className={cn("relative w-full h-full overflow-hidden bg-background", className)}
+    style={{
+      backgroundImage: `radial-gradient(circle, rgba(99, 102, 241, 0.3) 1px, transparent 1px)`,
+      backgroundSize: '16px 16px',
+      touchAction: 'none'
+    }}
+    role="application" 
+    aria-label="Shurangama Sutra Mind Map"
+  >
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-transparent" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" style={{ touchAction: 'none' }} onClick={(e) => {
         // Only handle clicks on the SVG background, not on nodes
         if (e.target === e.currentTarget) {
           // This is a background click, do nothing for now
@@ -498,6 +527,39 @@ export default function MindMapCanvas({
                   <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
                     {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
                   </text>
+                )}
+
+                {/* Commentary Lightbulb Icon - 只对经文节点显示 */}
+                {node.isScriptureNode && (
+                  <g
+                    style={{ transformOrigin: `${x + nodeWidth + 40}px ${y + nodeHeight / 2}px` }}
+                    className="hover:scale-110 transition-transform duration-200 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCommentaryClick(node.id, e);
+                    }}
+                  >
+                    <circle 
+                      cx={x + nodeWidth + 40} 
+                      cy={y + nodeHeight / 2} 
+                      r="16" 
+                      className="fill-white dark:fill-white"
+                      stroke="#22c55e"
+                      strokeWidth="2"
+                      filter="url(#shadow)"
+                    />
+                    <foreignObject
+                      x={x + nodeWidth + 40 - 8}
+                      y={y + nodeHeight / 2 - 8}
+                      width="16"
+                      height="16"
+                    >
+                      <Lightbulb 
+                        size={16} 
+                        className="pointer-events-none text-gray-600 dark:text-gray-400"
+                      />
+                    </foreignObject>
+                  </g>
                 )}
                 
                 {/* Page reference - 只对非经文节点显示 */}

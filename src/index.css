@@ -2,6 +2,7 @@
 @import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
+@plugin "@nauverse/tailwind-dot-grid-backgrounds";
 
 @custom-variant dark (&:is(.dark *));
 

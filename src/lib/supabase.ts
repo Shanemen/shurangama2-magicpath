@@ -4,11 +4,11 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// 如果环境变量不存在，创建一个虚拟的客户端（仅用于类型安全）
+// 实际的数据获取逻辑会在useScriptureData中检查环境变量
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createClient('https://dummy.supabase.co', 'dummy-key')
 
 // 数据库类型定义
 export interface ScriptureNode {

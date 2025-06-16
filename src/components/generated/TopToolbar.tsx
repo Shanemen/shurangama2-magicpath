@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sun, Moon, Info, Search } from "lucide-react";
+import { Sun, Moon, Info, Search, Bird } from "lucide-react";
 export interface TopToolbarProps {
   isDarkMode?: boolean;
   onThemeToggle?: () => void;
@@ -97,7 +97,13 @@ export default function TopToolbar({
     duration: 0.3
   }}>
       {/* Platform Title */}
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <motion.div
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Bird className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+        </motion.div>
         <motion.h1 className="text-xl md:text-2xl font-bold text-foreground" style={{
         fontFamily: "'DM Sans', system-ui, sans-serif"
       }} whileHover={{
