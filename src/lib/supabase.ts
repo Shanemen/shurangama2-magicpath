@@ -53,4 +53,5 @@ export interface MindMapNodeWithContent {
     simplified_text?: string
   }
   commentaries?: Commentary[]
+  isScriptureNode?: boolean // 标识是否为经文节点
 } 

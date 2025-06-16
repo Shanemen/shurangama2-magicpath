@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MindMapCanvas from "./MindMapCanvas";
 import ContentPanel from "./ContentPanel";
 import TopToolbar from "./TopToolbar";
-import ScriptureContentDisplay from "../ScriptureContent";
+// import ScriptureContentDisplay from "../ScriptureContent"; // 不再需要浮动经文组件
 import { useScriptureData } from "@/hooks/useScriptureData";
 export interface ScriptureAnalysisPlatformProps {
   className?: string;
@@ -18,7 +18,7 @@ export default function ScriptureAnalysisPlatform({
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
-  const [showScriptureContent, setShowScriptureContent] = useState(false);
+  // const [showScriptureContent, setShowScriptureContent] = useState(false); // 不再需要
   
   // 使用经文数据hook
   const { data, loading, error, selectedNode, selectedNodeContent, selectNode } = useScriptureData();
@@ -135,28 +135,23 @@ export default function ScriptureAnalysisPlatform({
 
   // 处理节点选择 - 如果节点有内容则显示经文
   const handleNodeSelect = (nodeId: string) => {
-    console.log('🎯 平台层处理节点选择:', nodeId)
     selectNode(nodeId)
   };
 
-  // 监听selectedNodeContent变化，自动显示经文
-  useEffect(() => {
-    console.log('📋 selectedNodeContent 变化:', selectedNodeContent)
-    console.log('📋 selectedNode 变化:', selectedNode)
-    console.log('📋 showScriptureContent 状态:', showScriptureContent)
-    if (selectedNodeContent) {
-      console.log('🎉 显示经文弹窗!')
-      setShowScriptureContent(true);
-    }
-  }, [selectedNodeContent, selectedNode, showScriptureContent]);
+  // 经文现在作为子节点显示，不再需要浮动组件
+  // useEffect(() => {
+  //   if (selectedNodeContent) {
+  //     setShowScriptureContent(true);
+  //   }
+  // }, [selectedNodeContent, selectedNode, showScriptureContent]);
 
-  // 关闭经文显示
-  const handleCloseScriptureContent = () => {
-    setShowScriptureContent(false);
-    // 可选：清空选中的内容，这样下次点击同一个节点时会重新显示
-    // 如果你希望保持选中状态，可以注释掉下面这行
-    // setSelectedNodeContent(null);
-  };
+  // 经文显示相关函数不再需要
+  // const handleCloseScriptureContent = () => {
+  //   setShowScriptureContent(false);
+  //   // 可选：清空选中的内容，这样下次点击同一个节点时会重新显示
+  //   // 如果你希望保持选中状态，可以注释掉下面这行
+  //   // setSelectedNodeContent(null);
+  // };
   return <motion.div className={cn("min-h-screen w-full bg-background text-foreground transition-colors duration-300", "font-sans antialiased", className)} style={{
     fontFamily: "'DM Sans', system-ui, sans-serif"
   }} initial={{
@@ -246,27 +241,14 @@ export default function ScriptureAnalysisPlatform({
         {isDarkMode ? "Dark mode enabled" : "Light mode enabled"}
       </div>
 
-      {/* 经文内容显示组件 */}
-      <ScriptureContentDisplay
+      {/* 经文内容现在通过子节点显示，不再需要浮动组件 */}
+      {/* <ScriptureContentDisplay
         content={selectedNodeContent}
         nodeTitle={selectedNode?.title}
         isVisible={showScriptureContent}
         onClose={handleCloseScriptureContent}
-      />
+      /> */}
 
-      {/* 临时调试信息 */}
-      {selectedNodeContent && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded z-[9999]">
-          <p>调试: 有经文内容!</p>
-          <p>显示状态: {showScriptureContent ? '是' : '否'}</p>
-          <p>节点: {selectedNode?.title}</p>
-          <button 
-            onClick={() => setShowScriptureContent(true)}
-            className="bg-white text-red-500 px-2 py-1 rounded mt-2"
-          >
-            强制显示
-          </button>
-        </div>
-      )}
+
     </motion.div>;
 }

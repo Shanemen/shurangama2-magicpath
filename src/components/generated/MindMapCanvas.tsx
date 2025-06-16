@@ -195,11 +195,59 @@ export default function MindMapCanvas({
 
   const nodePositions = calculateLayout(nodes);
 
-  // 处理节点点击 - 选择节点并通知父组件
+  // 处理节点点击 - 选择节点、添加经文子节点并通知父组件
   const handleNodeClick = useCallback((nodeId: string) => {
     onNodeSelect?.(nodeId);
-    toggleNode(nodeId);
-  }, [onNodeSelect, toggleNode]);
+    
+    // 查找被点击的节点
+    const findNode = (nodeList: MindMapNodeWithContent[], targetId: string): MindMapNodeWithContent | null => {
+      for (const node of nodeList) {
+        if (node.id === targetId) return node;
+        if (node.children) {
+          const found = findNode(node.children, targetId);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const clickedNode = findNode(nodes, nodeId);
+    
+    // 如果节点有内容且还没有经文子节点，则添加经文子节点
+    if (clickedNode && clickedNode.content && !clickedNode.children?.some(child => child.isScriptureNode)) {
+      const updateNodes = (nodeList: MindMapNodeWithContent[]): MindMapNodeWithContent[] => {
+        return nodeList.map(node => {
+          if (node.id === nodeId) {
+            // 创建经文子节点
+            const scriptureChild: MindMapNodeWithContent = {
+              id: `scripture_${nodeId}`,
+              title: clickedNode.content!.original_text,
+              isScriptureNode: true,
+              isExpanded: false
+            };
+            
+            return {
+              ...node,
+              isExpanded: true,
+              children: [...(node.children || []), scriptureChild]
+            };
+          }
+          if (node.children) {
+            return {
+              ...node,
+              children: updateNodes(node.children)
+            };
+          }
+          return node;
+        });
+      };
+      
+      setNodes(updateNodes(nodes));
+    } else {
+      // 普通的展开/收缩逻辑
+      toggleNode(nodeId);
+    }
+  }, [onNodeSelect, toggleNode, nodes]);
 
   // 显示loading状态
   if (loading) {
@@ -429,7 +477,7 @@ export default function MindMapCanvas({
           }} style={{
             opacity
           }}>
-                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200", highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border", isFocused && "stroke-primary")} onClick={(e) => {
+                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200", highlighted ? "fill-primary stroke-primary" : node.isScriptureNode ? "fill-card stroke-transparent" : "fill-card stroke-border", isFocused && "stroke-primary")} onClick={(e) => {
                   e.stopPropagation();
                   handleNodeClick(node.id);
                 }} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
@@ -439,17 +487,26 @@ export default function MindMapCanvas({
             }} />
                 
                 {/* Node title */}
-                <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
-                  {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
-                </text>
+                {node.isScriptureNode ? (
+                  // 经文节点支持多行显示
+                  <foreignObject x={x + 8} y={y + 8} width={nodeWidth - 16} height={nodeHeight - 16}>
+                    <div className={cn("text-sm font-medium leading-tight p-2 h-full flex items-center", highlighted ? "text-primary-foreground" : "text-card-foreground")} style={{ fontFamily: "'Lora', serif" }}>
+                      {node.title.length > 60 ? `${node.title.substring(0, 60)}...` : node.title}
+                    </div>
+                  </foreignObject>
+                ) : (
+                  <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
+                    {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
+                  </text>
+                )}
                 
-                {/* Page reference */}
-                {node.pageRef && <text x={x + 16} y={y + 44} fontSize="12" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-foreground")}>
+                {/* Page reference - 只对非经文节点显示 */}
+                {!node.isScriptureNode && node.pageRef && <text x={x + 16} y={y + 44} fontSize="12" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-foreground")}>
                     {node.pageRef}
                   </text>}
                 
-                {/* Lecture number badge */}
-                {node.lectureNumber && <g>
+                {/* Lecture number badge - 只对非经文节点显示 */}
+                {!node.isScriptureNode && node.lectureNumber && <g>
                     <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" className="pointer-events-none fill-primary" />
                     <text x={x + nodeWidth - 24} y={y + 25} fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none fill-primary-foreground">
                       {node.lectureNumber}
