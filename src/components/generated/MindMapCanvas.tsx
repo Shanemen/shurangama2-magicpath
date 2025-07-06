@@ -174,6 +174,38 @@ export default function MindMapCanvas({
     setNodes(data);
   }, [data]);
 
+  // Initial centering - only run once when data first loads
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
+  useEffect(() => {
+    if (!hasInitialized && data && data.length > 0 && nodePositions.length > 0) {
+      // Auto-center content on initial load
+      setTimeout(() => {
+        if (containerRef.current) {
+          const bounds = containerRef.current.getBoundingClientRect();
+          const { minX, maxX, minY, maxY, contentWidth, contentHeight } = viewportAdjustment || {};
+          
+          if (contentWidth && contentHeight) {
+            const scaleX = bounds.width / contentWidth;
+            const scaleY = bounds.height / contentHeight;
+            const newScale = Math.min(scaleX, scaleY, 1);
+            
+            // Center the content in the viewport
+            const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
+            const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
+            
+            setTransform({
+              x: centerX - (minX || 0) * newScale,
+              y: centerY - (minY || 0) * newScale,
+              scale: newScale
+            });
+          }
+        }
+        setHasInitialized(true);
+      }, 100);
+    }
+  }, [data, nodePositions, viewportAdjustment, hasInitialized]);
+
   // 处理搜索 - 现在由父组件处理
   // useEffect(() => {
   //   if (searchQuery) {
@@ -204,36 +236,225 @@ export default function MindMapCanvas({
     setNodes(updateNodes(nodes));
   }, [nodes]);
 
-  // Optimized viewport adjustment that uses memoized calculations
-  const adjustViewport = useCallback(() => {
-    if (!containerRef.current || !viewportAdjustment) return;
+  // Intelligent viewport adjustment - centers content and optimizes space usage
+  const smartAdjustViewport = useCallback((expandedNodeId?: string) => {
+    if (!containerRef.current) return;
     
     const bounds = containerRef.current.getBoundingClientRect();
-    const { minX, minY, contentWidth, contentHeight } = viewportAdjustment;
     
-    const scaleX = bounds.width / contentWidth;
-    const scaleY = bounds.height / contentHeight;
-    const newScale = Math.min(scaleX, scaleY, 1);
-    
-    // Center the content in the viewport
-    const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
-    const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
-    
-    setTransform({
-      x: centerX - minX * newScale,
-      y: centerY - minY * newScale,
-      scale: newScale
-    });
-  }, [viewportAdjustment]);
+    // If a specific node was expanded, focus on that node and its children
+    if (expandedNodeId) {
+      console.log("🔍 Smart adjust for node:", expandedNodeId);
+      console.log("🔍 Available nodePositions:", nodePositions.length);
+      
+      const expandedNodePos = nodePositions.find(pos => pos.node.id === expandedNodeId);
+      if (!expandedNodePos) {
+        console.log("❌ Expanded node not found in positions");
+        return;
+      }
+      
+      // Recursive function to find all relevant expanded nodes
+      const findRelevantNodeIds = (nodeId: string, nodeList: MindMapNodeWithContent[]): string[] => {
+        const relevantIds: string[] = [];
+        
+        const findNode = (nodes: MindMapNodeWithContent[], targetId: string): MindMapNodeWithContent | null => {
+          for (const node of nodes) {
+            if (node.id === targetId) return node;
+            if (node.children) {
+              const found = findNode(node.children, targetId);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        
+        const collectExpandedNodes = (currentNodeId: string) => {
+          relevantIds.push(currentNodeId);
+          
+          const node = findNode(nodeList, currentNodeId);
+          if (node && node.children) {
+            // Include all visible children (either already expanded or will be expanded)
+            for (const child of node.children) {
+              // Always include the child itself
+              relevantIds.push(child.id);
+              
+              // If the child is expanded, recursively include its children
+              if (child.isExpanded) {
+                collectExpandedNodes(child.id);
+              }
+            }
+          }
+          
+          // Also include any scripture children (they are often added dynamically)
+          const scriptureChildId = `scripture_${currentNodeId}`;
+          const scriptureChild = findNode(nodeList, scriptureChildId);
+          if (scriptureChild) {
+            relevantIds.push(scriptureChildId);
+            // If scripture child is expanded, include its children too
+            if (scriptureChild.isExpanded && scriptureChild.children) {
+              for (const child of scriptureChild.children) {
+                collectExpandedNodes(child.id);
+              }
+            }
+          }
+        };
+        
+        collectExpandedNodes(nodeId);
+        return [...new Set(relevantIds)]; // Remove duplicates
+      };
+      
+      // Get all relevant node IDs recursively
+      const relevantNodeIds = findRelevantNodeIds(expandedNodeId, nodes);
+      console.log("🔍 Relevant node IDs:", relevantNodeIds);
+      
+      // Find all relevant positions
+      const relevantPositions = nodePositions.filter(pos => 
+        relevantNodeIds.includes(pos.node.id)
+      );
+      
+      console.log("🔍 Found relevant positions:", relevantPositions.length);
+      
+      if (relevantPositions.length === 0) {
+        console.log("❌ No relevant positions found");
+        return;
+      }
+      
+      // Calculate bounds for the expanded content
+      const nodeMinX = Math.min(...relevantPositions.map(p => p.x));
+      const nodeMaxX = Math.max(...relevantPositions.map(p => p.x)) + nodeWidth;
+      const nodeMinY = Math.min(...relevantPositions.map(p => p.y));
+      const nodeMaxY = Math.max(...relevantPositions.map(p => p.y)) + nodeHeight;
+      
+      // Calculate current viewport bounds
+      const currentViewLeft = -transform.x / transform.scale;
+      const currentViewTop = -transform.y / transform.scale;
+      const currentViewRight = currentViewLeft + bounds.width / transform.scale;
+      const currentViewBottom = currentViewTop + bounds.height / transform.scale;
+      
+      // Calculate overall content bounds for intelligent positioning
+      const allMinX = Math.min(...nodePositions.map(p => p.x));
+      const allMaxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
+      const allMinY = Math.min(...nodePositions.map(p => p.y));
+      const allMaxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+      
+      console.log("🔍 Expanded content bounds:", { nodeMinX, nodeMaxX, nodeMinY, nodeMaxY });
+      console.log("🔍 All content bounds:", { allMinX, allMaxX, allMinY, allMaxY });
+      console.log("🔍 Viewport bounds:", { currentViewLeft, currentViewRight, currentViewTop, currentViewBottom });
+      
+      // Check if adjustment is needed
+      const isNodeOutsideView = 
+        nodeMinX < currentViewLeft || 
+        nodeMaxX > currentViewRight || 
+        nodeMinY < currentViewTop || 
+        nodeMaxY > currentViewBottom;
+      
+      console.log("🔍 Content outside view?", isNodeOutsideView);
+      
+      if (isNodeOutsideView) {
+        let adjustX = 0;
+        let adjustY = 0;
+        
+        const padding = 50;
+        const viewportWidth = bounds.width / transform.scale;
+        const viewportHeight = bounds.height / transform.scale;
+        
+        // Intelligent X-axis adjustment
+        const expandedContentWidth = nodeMaxX - nodeMinX;
+        const expandedContentCenterX = (nodeMinX + nodeMaxX) / 2;
+        
+        if (nodeMinX < currentViewLeft || nodeMaxX > currentViewRight) {
+          // Check if we can center the expanded content
+          if (expandedContentWidth + padding * 2 <= viewportWidth) {
+            // We can center it - but also consider overall layout balance
+            const idealCenterX = expandedContentCenterX;
+            const idealViewportLeft = idealCenterX - viewportWidth / 2;
+            
+            // Constrain to reasonable bounds relative to all content
+            const minViewportLeft = Math.max(allMinX - padding, idealViewportLeft);
+            const maxViewportLeft = Math.min(allMaxX - viewportWidth + padding, idealViewportLeft);
+            const optimalViewportLeft = Math.min(maxViewportLeft, Math.max(minViewportLeft, idealViewportLeft));
+            
+            adjustX = (currentViewLeft - optimalViewportLeft) * transform.scale;
+            console.log("🔧 Centering horizontally, adjust:", adjustX);
+          } else {
+            // Content too wide, just make it visible
+            if (nodeMinX < currentViewLeft) {
+              adjustX = (currentViewLeft - nodeMinX + padding) * transform.scale;
+            } else if (nodeMaxX > currentViewRight) {
+              adjustX = -(nodeMaxX - currentViewRight + padding) * transform.scale;
+            }
+            console.log("🔧 Making visible horizontally, adjust:", adjustX);
+          }
+        }
+        
+        // Intelligent Y-axis adjustment
+        const expandedContentHeight = nodeMaxY - nodeMinY;
+        const expandedContentCenterY = (nodeMinY + nodeMaxY) / 2;
+        
+        if (nodeMinY < currentViewTop || nodeMaxY > currentViewBottom) {
+          // Check if we can center the expanded content
+          if (expandedContentHeight + padding * 2 <= viewportHeight) {
+            // We can center it vertically
+            const idealCenterY = expandedContentCenterY;
+            const idealViewportTop = idealCenterY - viewportHeight / 2;
+            
+            // Constrain to reasonable bounds
+            const minViewportTop = Math.max(allMinY - padding, idealViewportTop);
+            const maxViewportTop = Math.min(allMaxY - viewportHeight + padding, idealViewportTop);
+            const optimalViewportTop = Math.min(maxViewportTop, Math.max(minViewportTop, idealViewportTop));
+            
+            adjustY = (currentViewTop - optimalViewportTop) * transform.scale;
+            console.log("🔧 Centering vertically, adjust:", adjustY);
+          } else {
+            // Content too tall, just make it visible
+            if (nodeMinY < currentViewTop) {
+              adjustY = (currentViewTop - nodeMinY + padding) * transform.scale;
+            } else if (nodeMaxY > currentViewBottom) {
+              adjustY = -(nodeMaxY - currentViewBottom + padding) * transform.scale;
+            }
+            console.log("🔧 Making visible vertically, adjust:", adjustY);
+          }
+        }
+        
+        console.log("🔧 Final intelligent adjustment:", { adjustX, adjustY });
+        
+        // Apply the adjustment
+        setTransform(prev => ({
+          ...prev,
+          x: prev.x + adjustX,
+          y: prev.y + adjustY
+        }));
+      } else {
+        console.log("✅ Content already visible, no adjustment needed");
+      }
+    }
+  }, [nodePositions, transform, nodeWidth, nodeHeight]);
 
-  // Trigger viewport adjustment after node changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      adjustViewport();
-    }, 100);
+  // Remove automatic viewport adjustment on every layout change
+  // Instead, users can manually use fitToScreen when needed
+  
+  // Track nodes that need viewport adjustment after layout update
+  const [pendingViewportAdjustment, setPendingViewportAdjustment] = useState<string | null>(null);
+
+  // Add optional smart adjustment for specific cases
+  const handleNodeToggle = useCallback((nodeId: string, shouldAdjust: boolean = false) => {
+    toggleNode(nodeId);
     
-    return () => clearTimeout(timer);
-  }, [adjustViewport]);
+    // Only adjust viewport if specifically requested or if it's the first expansion
+    if (shouldAdjust) {
+      setPendingViewportAdjustment(nodeId);
+    }
+  }, [toggleNode]);
+
+  // Execute viewport adjustment after nodePositions update
+  useEffect(() => {
+    if (pendingViewportAdjustment && nodePositions.length > 0) {
+      setTimeout(() => {
+        smartAdjustViewport(pendingViewportAdjustment);
+        setPendingViewportAdjustment(null);
+      }, 100); // Shorter delay since positions are already calculated
+    }
+  }, [nodePositions, pendingViewportAdjustment, smartAdjustViewport]);
 
   // 处理节点点击 - 选择节点、添加经文子节点并通知父组件
   const handleNodeClick = useCallback((nodeId: string) => {
@@ -283,11 +504,17 @@ export default function MindMapCanvas({
       };
       
       setNodes(updateNodes(nodes));
+      
+      // Smart adjust for new scripture content
+      setPendingViewportAdjustment(nodeId);
     } else {
-      // 普通的展开/收缩逻辑
+      // 普通的展开/收缩逻辑 - 也使用智能调整
       toggleNode(nodeId);
+      
+      // Apply smart adjustment for regular node expansions too
+      setPendingViewportAdjustment(nodeId);
     }
-  }, [onNodeSelect, toggleNode, nodes]);
+  }, [onNodeSelect, toggleNode, smartAdjustViewport, nodes]);
 
   // 处理灯泡点击 - 请求显示注释
   const handleCommentaryClick = useCallback((nodeId: string, e: React.MouseEvent) => {
@@ -358,7 +585,8 @@ export default function MindMapCanvas({
       case 'Enter':
       case ' ':
         e.preventDefault();
-        toggleNode(focusedNodeId);
+        // Use smart adjustment for keyboard navigation
+        handleNodeToggle(focusedNodeId, true);
         break;
       case 'ArrowLeft':
         e.preventDefault();
