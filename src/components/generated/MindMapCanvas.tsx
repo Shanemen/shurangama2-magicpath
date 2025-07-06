@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -66,78 +66,109 @@ export default function MindMapCanvas({
   const levelSpacing = 280;
   const siblingSpacing = 150;
 
-  // Calculate the total height needed by a subtree (including all expanded descendants)
-  const calculateSubtreeHeight = useCallback((node: MindMapNodeWithContent): number => {
-    if (!node.isExpanded || !node.children || node.children.length === 0) {
-      return nodeHeight;
-    }
+  // Memoized calculation of subtree height to avoid recalculation
+  const calculateSubtreeHeight = useMemo(() => {
+    const memoizedCalc = (node: MindMapNodeWithContent): number => {
+      if (!node.isExpanded || !node.children || node.children.length === 0) {
+        return nodeHeight;
+      }
+      
+      // Calculate total height needed by all children and their subtrees
+      let totalChildrenHeight = 0;
+      node.children.forEach(child => {
+        totalChildrenHeight += memoizedCalc(child);
+      });
+      
+      // Add spacing between children
+      const childSpacing = (node.children.length - 1) * siblingSpacing;
+      const childrenTotalHeight = totalChildrenHeight + childSpacing;
+      
+      // Return the maximum of node height and children total height
+      return Math.max(nodeHeight, childrenTotalHeight);
+    };
     
-    // Calculate total height needed by all children and their subtrees
-    let totalChildrenHeight = 0;
-    node.children.forEach(child => {
-      totalChildrenHeight += calculateSubtreeHeight(child);
-    });
-    
-    // Add spacing between children
-    const childSpacing = (node.children.length - 1) * siblingSpacing;
-    const childrenTotalHeight = totalChildrenHeight + childSpacing;
-    
-    // Return the maximum of node height and children total height
-    return Math.max(nodeHeight, childrenTotalHeight);
-  }, []);
+    return memoizedCalc;
+  }, [nodeHeight, siblingSpacing]);
 
-  // Calculate node positions with proper subtree spacing to prevent overlaps
-  const calculateLayout = useCallback((nodeList: MindMapNodeWithContent[], level = 0, startY = 0): Array<{
-    node: MindMapNodeWithContent;
-    x: number;
-    y: number;
-    level: number;
-  }> => {
-    const positions: Array<{
+  // Memoized layout calculation - only recalculate when nodes change
+  const nodePositions = useMemo(() => {
+    const calculateLayout = (nodeList: MindMapNodeWithContent[], level = 0, startY = 0): Array<{
       node: MindMapNodeWithContent;
       x: number;
       y: number;
       level: number;
-    }> = [];
-    
-    let currentY = startY;
-    
-    nodeList.forEach((node, index) => {
-      const x = level * levelSpacing + 50;
-      const subtreeHeight = calculateSubtreeHeight(node);
+    }> => {
+      const positions: Array<{
+        node: MindMapNodeWithContent;
+        x: number;
+        y: number;
+        level: number;
+      }> = [];
       
-      // Position this node at the center of its allocated subtree space
-      const nodeY = currentY + subtreeHeight / 2 - nodeHeight / 2;
+      let currentY = startY;
       
-      positions.push({
-        node,
-        x,
-        y: nodeY,
-        level
+      nodeList.forEach((node, index) => {
+        const x = level * levelSpacing + 50;
+        const subtreeHeight = calculateSubtreeHeight(node);
+        
+        // Position this node at the center of its allocated subtree space
+        const nodeY = currentY + subtreeHeight / 2 - nodeHeight / 2;
+        
+        positions.push({
+          node,
+          x,
+          y: nodeY,
+          level
+        });
+        
+        // If node is expanded, layout its children
+        if (node.isExpanded && node.children && node.children.length > 0) {
+          // Calculate space for children - center them within the subtree
+          let totalChildrenHeight = 0;
+          node.children.forEach(child => {
+            totalChildrenHeight += calculateSubtreeHeight(child);
+          });
+          const childSpacing = (node.children.length - 1) * siblingSpacing;
+          const childrenTotalHeight = totalChildrenHeight + childSpacing;
+          
+          // Start children layout from the top of their allocated space
+          const childrenStartY = nodeY + nodeHeight / 2 - childrenTotalHeight / 2;
+          const childPositions = calculateLayout(node.children, level + 1, childrenStartY);
+          positions.push(...childPositions);
+        }
+        
+        // Move to next sibling position
+        currentY += subtreeHeight + siblingSpacing;
       });
       
-      // If node is expanded, layout its children
-      if (node.isExpanded && node.children && node.children.length > 0) {
-        // Calculate space for children - center them within the subtree
-        let totalChildrenHeight = 0;
-        node.children.forEach(child => {
-          totalChildrenHeight += calculateSubtreeHeight(child);
-        });
-        const childSpacing = (node.children.length - 1) * siblingSpacing;
-        const childrenTotalHeight = totalChildrenHeight + childSpacing;
-        
-        // Start children layout from the top of their allocated space
-        const childrenStartY = nodeY + nodeHeight / 2 - childrenTotalHeight / 2;
-        const childPositions = calculateLayout(node.children, level + 1, childrenStartY);
-        positions.push(...childPositions);
-      }
-      
-      // Move to next sibling position
-      currentY += subtreeHeight + siblingSpacing;
-    });
+      return positions;
+    };
     
-    return positions;
-  }, [calculateSubtreeHeight]);
+    return calculateLayout(nodes);
+  }, [nodes, calculateSubtreeHeight, nodeHeight, levelSpacing, siblingSpacing]);
+
+  // Memoized viewport adjustment calculation
+  const viewportAdjustment = useMemo(() => {
+    if (nodePositions.length === 0) return null;
+    
+    const minX = Math.min(...nodePositions.map(p => p.x));
+    const maxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
+    const minY = Math.min(...nodePositions.map(p => p.y));
+    const maxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+    
+    const contentWidth = maxX - minX + 100;
+    const contentHeight = maxY - minY + 100;
+    
+    return {
+      minX,
+      maxX,
+      minY,
+      maxY,
+      contentWidth,
+      contentHeight
+    };
+  }, [nodePositions, nodeWidth, nodeHeight]);
+
   // 监听data变化更新本地nodes状态
   useEffect(() => {
     setNodes(data);
@@ -150,7 +181,7 @@ export default function MindMapCanvas({
   //   }
   // }, [searchQuery, searchNodes]);
 
-  // Toggle node expansion
+  // Toggle node expansion - optimized to avoid expensive recalculations
   const toggleNode = useCallback((nodeId: string) => {
     const updateNodes = (nodeList: MindMapNodeWithContent[]): MindMapNodeWithContent[] => {
       return nodeList.map(node => {
@@ -170,43 +201,39 @@ export default function MindMapCanvas({
       });
     };
     
-    const newNodes = updateNodes(nodes);
-    setNodes(newNodes);
-    
-    // Auto-adjust viewport after expansion to show new content
-    setTimeout(() => {
-      if (containerRef.current) {
-        const bounds = containerRef.current.getBoundingClientRect();
-        const newPositions = calculateLayout(newNodes);
-        
-        if (newPositions.length > 0) {
-          const minX = Math.min(...newPositions.map(p => p.x));
-          const maxX = Math.max(...newPositions.map(p => p.x)) + nodeWidth;
-          const minY = Math.min(...newPositions.map(p => p.y));
-          const maxY = Math.max(...newPositions.map(p => p.y)) + nodeHeight;
-          
-          const contentWidth = maxX - minX + 100;
-          const contentHeight = maxY - minY + 100;
-          
-          const scaleX = bounds.width / contentWidth;
-          const scaleY = bounds.height / contentHeight;
-          const newScale = Math.min(scaleX, scaleY, 1);
-          
-          // Center the content in the viewport
-          const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
-          const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
-          
-          setTransform({
-            x: centerX - minX * newScale,
-            y: centerY - minY * newScale,
-            scale: newScale
-          });
-        }
-      }
-    }, 100); // Small delay to ensure layout is calculated
-  }, [nodes, calculateLayout]);
+    setNodes(updateNodes(nodes));
+  }, [nodes]);
 
-  const nodePositions = calculateLayout(nodes);
+  // Optimized viewport adjustment that uses memoized calculations
+  const adjustViewport = useCallback(() => {
+    if (!containerRef.current || !viewportAdjustment) return;
+    
+    const bounds = containerRef.current.getBoundingClientRect();
+    const { minX, minY, contentWidth, contentHeight } = viewportAdjustment;
+    
+    const scaleX = bounds.width / contentWidth;
+    const scaleY = bounds.height / contentHeight;
+    const newScale = Math.min(scaleX, scaleY, 1);
+    
+    // Center the content in the viewport
+    const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
+    const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
+    
+    setTransform({
+      x: centerX - minX * newScale,
+      y: centerY - minY * newScale,
+      scale: newScale
+    });
+  }, [viewportAdjustment]);
+
+  // Trigger viewport adjustment after node changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      adjustViewport();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [adjustViewport]);
 
   // 处理节点点击 - 选择节点、添加经文子节点并通知父组件
   const handleNodeClick = useCallback((nodeId: string) => {
