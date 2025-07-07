@@ -183,7 +183,7 @@ export default function ScriptureAnalysisPlatform({
     duration: 0.3
   }}>
       {/* Top Toolbar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <TopToolbar isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} searchQuery={searchQuery} onSearchChange={handleSearch} />
       </header>
 
@@ -213,6 +213,8 @@ export default function ScriptureAnalysisPlatform({
                   data={data}
                   loading={loading}
                   error={error}
+                  sidebarExpanded={sidebarExpanded}
+                  selectedCommentaryNodeId={selectedCommentaryNodeId}
                 />
               </section>
 
@@ -237,14 +239,16 @@ export default function ScriptureAnalysisPlatform({
               {/* Main Content - Mind Map */}
               <section className="relative w-full h-full overflow-hidden bg-red-100 dark:bg-red-900" aria-label="Scripture Mind Map">
                 <div className="absolute inset-0 bg-green-100 dark:bg-green-900">
-                  <MindMapCanvas 
-                    searchQuery={searchQuery} 
-                    onNodeSelect={handleNodeSelect}
-                    onCommentaryRequest={handleCommentaryRequest}
-                    data={data}
-                    loading={loading}
-                    error={error}
-                  />
+                                <MindMapCanvas 
+                searchQuery={searchQuery} 
+                onNodeSelect={handleNodeSelect}
+                onCommentaryRequest={handleCommentaryRequest}
+                data={data}
+                loading={loading}
+                error={error}
+                sidebarExpanded={sidebarExpanded}
+                selectedCommentaryNodeId={selectedCommentaryNodeId}
+              />
                 </div>
               </section>
 

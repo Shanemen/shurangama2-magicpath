@@ -111,7 +111,7 @@ export default function TopToolbar({
       }} transition={{
         duration: 0.2
       }}>
-          楞嚴經智慧平台
+          楞嚴經解析平台
         </motion.h1>
       </div>
 
@@ -121,7 +121,7 @@ export default function TopToolbar({
           <PopoverTrigger asChild>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input ref={searchInputRef} type="text" placeholder="搜尋經文內容..." value={searchQuery} onChange={e => handleSearchChange(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setIsSearchOpen(searchQuery.length > 0)} className={cn("pl-10 pr-4 h-10 w-full", "transition-all duration-200", "focus:ring-2 focus:ring-primary/20 focus:border-primary", "hover:border-primary/50")} aria-label="搜尋經文內容" aria-expanded={isSearchOpen} aria-haspopup="listbox" role="combobox" />
+              <Input ref={searchInputRef} type="text" placeholder="搜尋經文內容..." value={searchQuery} onChange={e => handleSearchChange(e.target.value)} onKeyDown={handleSearchKeyDown} onFocus={() => setIsSearchOpen(searchQuery.length > 0)} className={cn("pl-10 pr-4 h-10 w-full", "transition-all duration-200", "focus:!ring-1 focus:!ring-primary/30 focus:!border-primary", "focus-visible:!ring-1 focus-visible:!ring-primary/30 focus-visible:!border-primary", "hover:border-primary/50")} aria-label="搜尋經文內容" aria-expanded={isSearchOpen} aria-haspopup="listbox" role="combobox" />
             </div>
           </PopoverTrigger>
           
@@ -224,7 +224,7 @@ export default function TopToolbar({
               <DialogTitle className="text-xl font-bold" style={{
               fontFamily: "'DM Sans', system-ui, sans-serif"
             }}>
-                關於楞嚴經智慧平台
+                關於楞嚴經解析平台
               </DialogTitle>
             </DialogHeader>
             

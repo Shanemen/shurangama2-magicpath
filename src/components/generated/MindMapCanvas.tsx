@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { ZoomIn, ZoomOut, RotateCcw, Maximize2, Lightbulb } from "lucide-react";
 import { useScriptureData } from "@/hooks/useScriptureData";
 import { type MindMapNodeWithContent } from "@/lib/supabase";
@@ -18,6 +19,8 @@ export interface MindMapCanvasProps {
   loading?: boolean;
   error?: string | null;
   onCommentaryRequest?: (nodeId: string) => void;
+  sidebarExpanded?: boolean;
+  selectedCommentaryNodeId?: string | null;
 }
 
 export default function MindMapCanvas({
@@ -27,7 +30,9 @@ export default function MindMapCanvas({
   data: propData,
   loading: propLoading,
   error: propError,
-  onCommentaryRequest
+  onCommentaryRequest,
+  sidebarExpanded = false,
+  selectedCommentaryNodeId = null
 }: MindMapCanvasProps) {
   // 如果没有传入数据，则使用hook获取
   const hookData = useScriptureData();
@@ -59,6 +64,7 @@ export default function MindMapCanvas({
     y: 0
   });
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [enableTransition, setEnableTransition] = useState(false);
 
   // Node layout calculations
   const nodeWidth = 200;
@@ -108,7 +114,7 @@ export default function MindMapCanvas({
       let currentY = startY;
       
       nodeList.forEach((node, index) => {
-        const x = level * levelSpacing + 50;
+        const x = level * levelSpacing;
         const subtreeHeight = calculateSubtreeHeight(node);
         
         // Position this node at the center of its allocated subtree space
@@ -174,6 +180,55 @@ export default function MindMapCanvas({
     setNodes(data);
   }, [data]);
 
+  // 监听侧边栏展开状态，自动调整视图位置避免遮挡
+  useEffect(() => {
+    if (!containerRef.current || nodePositions.length === 0) return;
+    
+    const bounds = containerRef.current.getBoundingClientRect();
+    const sidebarWidth = 384; // w-96 = 384px
+    const padding = 40; // 额外的边距
+    
+    // 如果侧边栏展开且有选中的注释节点
+    if (sidebarExpanded && selectedCommentaryNodeId) {
+      // 找到被选中的节点位置
+      const targetNodePosition = nodePositions.find(
+        pos => pos.node.id === selectedCommentaryNodeId
+      );
+      
+      if (targetNodePosition) {
+        const nodeScreenX = targetNodePosition.x * transform.scale + transform.x;
+        // 考虑lightbulb icon的位置：节点 + 40px偏移 + 16px半径 = 56px额外空间
+        const lightbulbIconSpace = 56;
+        const nodeWithIconRight = nodeScreenX + (nodeWidth + lightbulbIconSpace) * transform.scale;
+        
+        // 计算被侧边栏遮挡的区域
+        const sidebarLeft = bounds.width - sidebarWidth;
+        
+        // 如果节点（包括lightbulb icon）被遮挡，调整视图位置
+        if (nodeWithIconRight > sidebarLeft - padding) {
+          const requiredOffset = nodeWithIconRight - (sidebarLeft - padding);
+          
+          // 启用过渡效果
+          setEnableTransition(true);
+          
+          // 使用平滑的过渡效果
+          setTransform(prev => ({
+            ...prev,
+            x: prev.x - requiredOffset
+          }));
+          
+          console.log('🎯 自动调整视图位置，避免节点被侧边栏遮挡');
+          
+          // 过渡完成后禁用过渡效果
+          setTimeout(() => {
+            setEnableTransition(false);
+          }, 300);
+        }
+      }
+    }
+    // 侧边栏收起时保持当前位置，用户可以手动使用"适应屏幕"按钮重新居中
+  }, [sidebarExpanded, selectedCommentaryNodeId, nodePositions, transform.scale, nodeWidth]);
+
   // Initial centering - only run once when data first loads
   const [hasInitialized, setHasInitialized] = useState(false);
   
@@ -190,12 +245,13 @@ export default function MindMapCanvas({
             const scaleY = bounds.height / contentHeight;
             const newScale = Math.min(scaleX, scaleY, 1);
             
-            // Center the content in the viewport
-            const centerX = bounds.width / 2 - (contentWidth * newScale) / 2;
+            // Align horizontally with logo (approximately 20px from left edge)
+            // Keep vertical centering
+            const logoAlignX = 20; // Approximate logo position
             const centerY = bounds.height / 2 - (contentHeight * newScale) / 2;
             
             setTransform({
-              x: centerX - (minX || 0) * newScale,
+              x: logoAlignX - (minX || 0) * newScale,
               y: centerY - (minY || 0) * newScale,
               scale: newScale
             });
@@ -550,6 +606,7 @@ export default function MindMapCanvas({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 0) {
       setIsDragging(true);
+      setEnableTransition(false); // 拖拽时禁用过渡效果
       setDragStart({
         x: e.clientX - transform.x,
         y: e.clientY - transform.y
@@ -570,6 +627,7 @@ export default function MindMapCanvas({
   };
   const handleWheel = (e: React.WheelEvent) => {
     // 不使用preventDefault，而是通过其他方式防止默认滚动
+    setEnableTransition(false); // 缩放时禁用过渡效果
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.max(0.1, Math.min(3, transform.scale * delta));
     setTransform(prev => ({
@@ -635,31 +693,94 @@ export default function MindMapCanvas({
   };
 
   // Control functions
-  const zoomIn = () => setTransform(prev => ({
-    ...prev,
-    scale: Math.min(3, prev.scale * 1.2)
-  }));
-  const zoomOut = () => setTransform(prev => ({
-    ...prev,
-    scale: Math.max(0.1, prev.scale * 0.8)
-  }));
-  const resetView = () => setTransform({
-    x: 0,
-    y: 0,
-    scale: 1
-  });
+  const zoomIn = () => {
+    setEnableTransition(false);
+    setTransform(prev => ({
+      ...prev,
+      scale: Math.min(3, prev.scale * 1.2)
+    }));
+  };
+  const zoomOut = () => {
+    setEnableTransition(false);
+    setTransform(prev => ({
+      ...prev,
+      scale: Math.max(0.1, prev.scale * 0.8)
+    }));
+  };
+  const resetView = () => {
+    // Reset to original data state (with original isExpanded values)
+    if (data && data.length > 0) {
+      const resetNodes = (originalList: MindMapNodeWithContent[]): MindMapNodeWithContent[] => {
+        return originalList.map(node => ({
+          ...node,
+          isExpanded: false, // Reset all to collapsed
+          children: node.children ? resetNodes(node.children) : undefined
+        }));
+      };
+      
+      // Reset to original data structure but with all nodes collapsed
+      setNodes(resetNodes(data));
+      
+      // Reset view to initial centered position after brief delay
+      setTimeout(() => {
+        if (!containerRef.current) return;
+        
+        const bounds = containerRef.current.getBoundingClientRect();
+        
+        // Use the same alignment logic as initial load
+        setEnableTransition(false);
+        setTransform({
+          x: 20, // Align with logo position
+          y: bounds.height / 2,
+          scale: 1
+        });
+        
+        // Trigger initial auto-centering after reset
+        setHasInitialized(false);
+      }, 100);
+    }
+  };
   const fitToScreen = () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || nodePositions.length === 0) return;
+    
     const bounds = containerRef.current.getBoundingClientRect();
-    const contentWidth = Math.max(...nodePositions.map(p => p.x)) + nodeWidth + 100;
-    const contentHeight = Math.max(...nodePositions.map(p => Math.abs(p.y))) * 2 + nodeHeight + 100;
-    const scaleX = bounds.width / contentWidth;
-    const scaleY = bounds.height / contentHeight;
-    const scale = Math.min(scaleX, scaleY, 1);
+    
+    // Calculate actual content bounds
+    const minX = Math.min(...nodePositions.map(p => p.x));
+    const maxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
+    const minY = Math.min(...nodePositions.map(p => p.y));
+    const maxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+    
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    
+    // Add uniform padding (margin)
+    const padding = 80;
+    const availableWidth = bounds.width - padding * 2;
+    const availableHeight = bounds.height - padding * 2;
+    
+    // Calculate scale to fit both dimensions with padding
+    const scaleX = availableWidth / contentWidth;
+    const scaleY = availableHeight / contentHeight;
+    const newScale = Math.min(scaleX, scaleY, 1); // Don't zoom in, only fit
+    
+    // Calculate content center points
+    const contentCenterY = (minY + maxY) / 2;
+    
+    // Calculate viewport center points
+    const viewportCenterY = bounds.height / 2;
+    
+    // Align horizontally with logo (approximately 20px from left edge)
+    // Keep vertical centering
+    const logoAlignX = 20; // Approximate logo position
+    const offsetX = logoAlignX - minX * newScale;
+    const offsetY = viewportCenterY - contentCenterY * newScale;
+    
+    setEnableTransition(false);
     setTransform({
-      x: 50,
-      y: bounds.height / 2,
-      scale
+      x: offsetX,
+      y: offsetY,
+      scale: newScale
     });
   };
 
@@ -704,7 +825,7 @@ export default function MindMapCanvas({
     role="application" 
     aria-label="Shurangama Sutra Mind Map"
   >
-      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-transparent" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" style={{ touchAction: 'none' }} onClick={(e) => {
+      <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-transparent focus:outline-none" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" style={{ touchAction: 'none', outline: 'none' }} onClick={(e) => {
         // Only handle clicks on the SVG background, not on nodes
         if (e.target === e.currentTarget) {
           // This is a background click, do nothing for now
@@ -716,7 +837,12 @@ export default function MindMapCanvas({
           </filter>
         </defs>
         
-        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
+        <g 
+          transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}
+          style={{
+            transition: enableTransition ? 'transform 0.3s ease-out' : 'none'
+          }}
+        >
           {/* Render connections */}
           {nodePositions.map(({
           node,
@@ -761,7 +887,7 @@ export default function MindMapCanvas({
           }} style={{
             opacity
           }}>
-                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200", highlighted ? "fill-primary stroke-primary" : node.isScriptureNode ? "fill-card stroke-transparent" : "fill-card stroke-border", isFocused && "stroke-primary")} onClick={(e) => {
+                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200 focus:outline-none", highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border", isFocused && "stroke-primary")} style={{ outline: 'none' }} onClick={(e) => {
                   e.stopPropagation();
                   handleNodeClick(node.id);
                 }} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
@@ -817,18 +943,7 @@ export default function MindMapCanvas({
                   </g>
                 )}
                 
-                {/* Page reference - 只对非经文节点显示 */}
-                {!node.isScriptureNode && node.pageRef && <text x={x + 16} y={y + 44} fontSize="12" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-foreground")}>
-                    {node.pageRef}
-                  </text>}
-                
-                {/* Lecture number badge - 只对非经文节点显示 */}
-                {!node.isScriptureNode && node.lectureNumber && <g>
-                    <circle cx={x + nodeWidth - 24} cy={y + 20} r="12" className="pointer-events-none fill-primary" />
-                    <text x={x + nodeWidth - 24} y={y + 25} fontSize="10" fontWeight="600" textAnchor="middle" className="pointer-events-none select-none fill-primary-foreground">
-                      {node.lectureNumber}
-                    </text>
-                  </g>}
+
                 
                 {/* Expansion indicator */}
                 {node.children && node.children.length > 0 && <motion.text x={x + nodeWidth - 16} y={y + nodeHeight - 12} fontSize="16" textAnchor="middle" className="pointer-events-none select-none fill-foreground" animate={{
@@ -844,7 +959,7 @@ export default function MindMapCanvas({
       </svg>
       
       {/* Floating Controls */}
-      <motion.div className="absolute bottom-4 right-4 flex flex-col gap-2" initial={{
+      <motion.div className="absolute bottom-4 right-4 flex flex-col gap-1 p-1 rounded-xl bg-background/80 backdrop-blur-sm shadow-lg border border-border/50" initial={{
       opacity: 0,
       y: 20
     }} animate={{
@@ -853,18 +968,46 @@ export default function MindMapCanvas({
     }} transition={{
       delay: 0.5
     }}>
-        <Button size="icon" variant="secondary" onClick={zoomIn} aria-label="Zoom in" className="shadow-lg backdrop-blur-sm bg-background/80">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="secondary" onClick={zoomOut} aria-label="Zoom out" className="shadow-lg backdrop-blur-sm bg-background/80">
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="secondary" onClick={fitToScreen} aria-label="Fit to screen" className="shadow-lg backdrop-blur-sm bg-background/80">
-          <Maximize2 className="h-4 w-4" />
-        </Button>
-        <Button size="icon" variant="secondary" onClick={resetView} aria-label="Reset view" className="shadow-lg backdrop-blur-sm bg-background/80">
-          <RotateCcw className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" onClick={zoomIn} aria-label="Zoom in 放大" className="hover:bg-muted/50 transition-colors">
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={8}>
+            Zoom in 放大
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" onClick={zoomOut} aria-label="Zoom out 缩小" className="hover:bg-muted/50 transition-colors">
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={8}>
+            Zoom out 缩小
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" onClick={fitToScreen} aria-label="Fit to screen 全屏" className="hover:bg-muted/50 transition-colors">
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={8}>
+            Fit to screen 全屏
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" onClick={resetView} aria-label="Reset 重置" className="hover:bg-muted/50 transition-colors">
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={8}>
+            Reset 重置
+          </TooltipContent>
+        </Tooltip>
       </motion.div>
       
       {/* Screen reader description */}
