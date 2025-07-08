@@ -244,9 +244,14 @@ export function useScriptureData(): UseScriptureDataReturn {
   // 选择节点 - 如果节点有内容，同时获取内容详情
   const selectNode = useCallback(async (nodeId: string) => {
     console.log('🎯 selectNode 被调用，nodeId:', nodeId)
-    const node = nodeMap.get(nodeId)
+    
+    // 处理带 scripture_ 前缀的经文子节点ID
+    const realNodeId = nodeId.startsWith('scripture_') ? nodeId.replace('scripture_', '') : nodeId
+    console.log('🎯 实际节点ID:', realNodeId)
+    
+    const node = nodeMap.get(realNodeId)
     if (!node) {
-      console.log('❌ 找不到节点:', nodeId)
+      console.log('❌ 找不到节点:', realNodeId)
       return
     }
 
@@ -263,7 +268,7 @@ export function useScriptureData(): UseScriptureDataReturn {
         const { data: content, error } = await supabase
           .from('scripture_content')
           .select('*')
-          .eq('node_id', nodeId)
+          .eq('node_id', realNodeId)
           .eq('content_order', 1)
           .single()
 
@@ -291,10 +296,14 @@ export function useScriptureData(): UseScriptureDataReturn {
     try {
       setLoadingCommentaries(true)
       
+      // 处理带 scripture_ 前缀的经文子节点ID
+      const realNodeId = nodeId.startsWith('scripture_') ? nodeId.replace('scripture_', '') : nodeId
+      console.log('📝 loadNodeCommentaries 实际节点ID:', realNodeId)
+      
       const { data: commentaries, error } = await supabase
         .from('commentaries')
         .select('*')
-        .eq('node_id', nodeId)
+        .eq('node_id', realNodeId)
         .order('created_at')
 
       if (error) throw error

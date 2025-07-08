@@ -62,7 +62,7 @@ export default function ScriptureAnalysisPlatform({
       title: "圆瑛法师注解",
       text: masterCommentary.content,
       author: "圆瑛法师",
-      source: "楞严经讲记"
+      source: "《大佛頂首楞嚴經講義》"
     };
   }, [selectedNodeCommentaries]);
 
@@ -84,10 +84,14 @@ export default function ScriptureAnalysisPlatform({
     loading,
     error,
     dataLength: data?.length,
-    data: data,
-    commentariesLength: selectedNodeCommentaries.length,
+    selectedNode: selectedNode?.title,
+    selectedNodeContent: selectedNodeContent?.original_text?.substring(0, 50) + '...',
+    selectedNodeCommentaries: selectedNodeCommentaries.map(c => `${c.author}: ${c.content.substring(0, 30)}...`),
     loadingCommentaries,
-    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined'
+    sidebarExpanded,
+    sidebarScriptureData,
+    sidebarCommentaryData,
+    sidebarAITranslationData
   });
 
   // Handle responsive breakpoints
