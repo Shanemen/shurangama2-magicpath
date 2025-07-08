@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sun, Moon, Info, Search, Bird } from "lucide-react";
+import { Sun, Moon, Info, Search, Bird, Monitor } from "lucide-react";
+import { ThemeMode } from "@/hooks/useTheme";
 export interface TopToolbarProps {
   isDarkMode?: boolean;
+  themeMode?: ThemeMode;
   onThemeToggle?: () => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
@@ -21,6 +23,7 @@ export interface TopToolbarProps {
 const defaultSuggestions = ["七處徵心", "十番顯見", "辨識真妄", "阿難示墮", "佛問心目", "顯見不動", "顯見不滅", "識精元明", "楞嚴經", "宣化上人"];
 export default function TopToolbar({
   isDarkMode = true,
+  themeMode = 'system',
   onThemeToggle,
   searchQuery = "",
   onSearchChange,
@@ -172,9 +175,26 @@ export default function TopToolbar({
       }} whileTap={{
         scale: 0.95
       }}>
-          <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label={isDarkMode ? "切換到淺色模式" : "切換到深色模式"}>
+          <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label={
+            themeMode === 'system' ? "當前：跟隨系統主題，點擊切換到淺色模式" :
+            themeMode === 'light' ? "當前：淺色模式，點擊切換到深色模式" :
+            "當前：深色模式，點擊切換到跟隨系統主題"
+          }>
             <AnimatePresence mode="wait">
-              {isDarkMode ? <motion.div key="sun" initial={{
+              {themeMode === 'system' ? <motion.div key="monitor" initial={{
+              rotate: -90,
+              opacity: 0
+            }} animate={{
+              rotate: 0,
+              opacity: 1
+            }} exit={{
+              rotate: 90,
+              opacity: 0
+            }} transition={{
+              duration: 0.3
+            }}>
+                  <Monitor className="h-5 w-5" />
+                </motion.div> : themeMode === 'light' ? <motion.div key="sun" initial={{
               rotate: -90,
               opacity: 0
             }} animate={{

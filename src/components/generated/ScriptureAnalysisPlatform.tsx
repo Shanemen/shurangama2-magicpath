@@ -10,13 +10,14 @@ import ContentPanel from "./ContentPanel";
 import TopToolbar from "./TopToolbar";
 // import ScriptureContentDisplay from "../ScriptureContent"; // 不再需要浮动经文组件
 import { useScriptureData } from "@/hooks/useScriptureData";
+import { useTheme } from "@/hooks/useTheme";
 export interface ScriptureAnalysisPlatformProps {
   className?: string;
 }
 export default function ScriptureAnalysisPlatform({
   className
 }: ScriptureAnalysisPlatformProps) {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { themeMode, isDarkMode, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   // const [showScriptureContent, setShowScriptureContent] = useState(false); // 不再需要
@@ -198,7 +199,7 @@ export default function ScriptureAnalysisPlatform({
     }
   }, [isDarkMode]);
   const handleThemeToggle = () => {
-    setIsDarkMode(!isDarkMode);
+    toggleTheme();
   };
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -247,7 +248,7 @@ export default function ScriptureAnalysisPlatform({
   }}>
       {/* Top Toolbar */}
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <TopToolbar isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} searchQuery={searchQuery} onSearchChange={handleSearch} />
+        <TopToolbar isDarkMode={isDarkMode} themeMode={themeMode} onThemeToggle={handleThemeToggle} searchQuery={searchQuery} onSearchChange={handleSearch} />
       </header>
 
       {/* Main Content Area */}
@@ -366,7 +367,8 @@ export default function ScriptureAnalysisPlatform({
       {/* Focus Management for Accessibility */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {searchQuery && `Searching for: ${searchQuery}`}
-        {isDarkMode ? "Dark mode enabled" : "Light mode enabled"}
+        {themeMode === 'system' ? (isDarkMode ? "跟隨系統主題 (當前：深色)" : "跟隨系統主題 (當前：淺色)") : 
+         themeMode === 'light' ? "淺色模式" : "深色模式"}
       </div>
 
       {/* 经文内容现在通过子节点显示，不再需要浮动组件 */}
