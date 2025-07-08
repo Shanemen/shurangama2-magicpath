@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { BookImage } from "lucide-react";
 import MindMapCanvas from "./MindMapCanvas";
 import ContentPanel from "./ContentPanel";
 import TopToolbar from "./TopToolbar";
@@ -25,7 +26,57 @@ export default function ScriptureAnalysisPlatform({
   const [selectedCommentaryNodeId, setSelectedCommentaryNodeId] = useState<string | null>(null);
   
   // 使用经文数据hook
-  const { data, loading, error, selectedNode, selectedNodeContent, selectNode } = useScriptureData();
+  const { 
+    data, 
+    loading, 
+    error, 
+    selectedNode, 
+    selectedNodeContent, 
+    selectedNodeCommentaries,
+    loadingCommentaries,
+    selectNode,
+    loadNodeCommentaries
+  } = useScriptureData();
+
+  // 构建用于侧边栏的经文数据
+  const sidebarScriptureData = React.useMemo(() => {
+    if (!selectedNodeContent || !selectedNode) {
+      return undefined;
+    }
+    
+    return {
+      title: selectedNode!.title || "楞嚴經",
+      text: selectedNodeContent!.original_text,
+      // 暂时不显示随机生成的页码和讲次信息
+      // chapter: selectedNode!.pageRef,
+      // verse: selectedNode!.lectureNumber ? `講次 ${selectedNode!.lectureNumber}` : undefined
+    };
+  }, [selectedNodeContent, selectedNode]);
+
+  // 构建用于侧边栏的法师开示数据
+  const sidebarCommentaryData = React.useMemo(() => {
+    const masterCommentary = selectedNodeCommentaries.find(c => c.author === '圆瑛法师');
+    if (!masterCommentary) return undefined;
+    
+    return {
+      title: "圆瑛法师注解",
+      text: masterCommentary.content,
+      author: "圆瑛法师",
+      source: "楞严经讲记"
+    };
+  }, [selectedNodeCommentaries]);
+
+  // 构建用于侧边栏的AI翻译数据
+  const sidebarAITranslationData = React.useMemo(() => {
+    const claudeCommentary = selectedNodeCommentaries.find(c => c.author === 'Claude');
+    if (!claudeCommentary) return undefined;
+    
+    return {
+      id: "claude-translation",
+      title: "AI Analysis",
+      content: claudeCommentary.content
+    };
+  }, [selectedNodeCommentaries]);
 
   // 🔍 DEBUG: 打印关键状态信息
   console.log('🔍 ScriptureAnalysisPlatform Debug:', {
@@ -34,6 +85,8 @@ export default function ScriptureAnalysisPlatform({
     error,
     dataLength: data?.length,
     data: data,
+    commentariesLength: selectedNodeCommentaries.length,
+    loadingCommentaries,
     windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined'
   });
 
@@ -153,9 +206,15 @@ export default function ScriptureAnalysisPlatform({
   };
 
   // 处理注释请求 - 灯泡图标点击
-  const handleCommentaryRequest = (nodeId: string) => {
+  const handleCommentaryRequest = async (nodeId: string) => {
+    // 首先选择节点以获取其内容
+    selectNode(nodeId);
     setSelectedCommentaryNodeId(nodeId);
     setSidebarExpanded(true);
+    
+    // 加载该节点的注释数据
+    await loadNodeCommentaries(nodeId);
+    
     console.log('📖 请求显示注释，节点ID:', nodeId);
   };
 
@@ -220,7 +279,12 @@ export default function ScriptureAnalysisPlatform({
 
               {/* Content Panel Section */}
               <aside className="flex-1 w-full p-4" aria-label="Scripture Analysis Content">
-                <ContentPanel searchQuery={searchQuery} />
+                <ContentPanel 
+                  searchQuery={searchQuery}
+                  scripture={sidebarScriptureData}
+                  commentary={sidebarCommentaryData}
+                  aiTranslation={sidebarAITranslationData}
+                />
               </aside>
             </motion.div> :
         // Desktop/Tablet Layout - Split Screen with Expandable Sidebar
@@ -256,7 +320,7 @@ export default function ScriptureAnalysisPlatform({
               <AnimatePresence mode="wait">
                 {sidebarExpanded && (
                   <motion.aside 
-                    className="absolute top-0 right-0 w-96 h-full bg-background/95 backdrop-blur-sm border-l border-border shadow-xl z-40"
+                    className="absolute top-0 right-0 w-96 h-full bg-background/95 backdrop-blur-sm border-l border-border shadow-xl z-40 flex flex-col"
                     initial={{ x: '100%', opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: '100%', opacity: 0 }}
@@ -264,8 +328,11 @@ export default function ScriptureAnalysisPlatform({
                     aria-label="Commentary Sidebar"
                   >
                     {/* Sidebar Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-border">
-                      <h2 className="text-lg font-semibold text-foreground">📖 经文注释</h2>
+                    <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <BookImage className="h-5 w-5 text-primary" />
+                        经文注释
+                      </h2>
                       <button
                         onClick={() => setSidebarExpanded(false)}
                         className="p-2 rounded-md hover:bg-muted transition-colors"
@@ -276,10 +343,13 @@ export default function ScriptureAnalysisPlatform({
                     </div>
                     
                     {/* Sidebar Content */}
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-hidden">
                       <ContentPanel 
                         searchQuery={searchQuery}
-                        className="h-auto"
+                        className="h-full"
+                        scripture={sidebarScriptureData}
+                        commentary={sidebarCommentaryData}
+                        aiTranslation={sidebarAITranslationData}
                       />
                     </div>
                   </motion.aside>

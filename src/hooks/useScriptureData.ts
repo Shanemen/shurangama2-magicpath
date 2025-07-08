@@ -126,9 +126,9 @@ export function useScriptureData(): UseScriptureDataReturn {
           const mindMapNode: MindMapNodeWithContent = {
             id: node.id,
             title: node.title,
-            // 只有有内容的节点才显示页码和讲次
-            pageRef: node.has_content && content ? `P.${Math.floor(Math.random() * 500) + 1}` : undefined,
-            lectureNumber: node.has_content && content ? Math.floor(Math.random() * 50) + 1 : undefined,
+            // 暂时不显示随机生成的页码和讲次，避免误导
+            // pageRef: node.has_content && content ? `P.${Math.floor(Math.random() * 500) + 1}` : undefined,
+            // lectureNumber: node.has_content && content ? Math.floor(Math.random() * 50) + 1 : undefined,
             children: buildNodeTree(node.id),
             isExpanded: !node.parent_id, // 只有根节点默认展开
             content: content ? {

@@ -959,15 +959,25 @@ export default function MindMapCanvas({
       </svg>
       
       {/* Floating Controls */}
-      <motion.div className="absolute bottom-4 right-4 flex flex-col gap-1 p-1 rounded-xl bg-background/80 backdrop-blur-sm shadow-lg border border-border/50" initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      delay: 0.5
-    }}>
+      <motion.div 
+        className="absolute bottom-4 flex flex-col gap-1 p-1 rounded-xl bg-background/80 backdrop-blur-sm shadow-lg border border-border/50" 
+        initial={{
+          opacity: 0,
+          y: 20
+        }} 
+        animate={{
+          opacity: 1,
+          y: 0,
+          x: sidebarExpanded ? -400 : 0 // 当侧边栏展开时向左移动400px (侧边栏宽度384px + 额外边距)
+        }} 
+        transition={{
+          delay: 0.5,
+          x: { duration: 0.3, ease: 'easeInOut' } // 为水平移动添加过渡效果
+        }}
+        style={{
+          right: '1rem' // 替换 right-4 class
+        }}
+      >
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" variant="ghost" onClick={zoomIn} aria-label="Zoom in 放大" className="hover:bg-muted/50 transition-colors">
