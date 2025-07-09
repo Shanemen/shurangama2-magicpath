@@ -10,8 +10,8 @@ An interactive mind map visualization of the Shurangama Sutra (楞嚴經), built
 - **Balanced Flow**: Children nodes distributed above and below parents like Google NotebookLM
 - **Auto-Viewport Adjustment**: Automatically centers and scales content when expanding nodes
 
-### 🎨 Beautiful Design
-- **Tangerine Theme**: Professional color scheme from tweakcn
+### 🎨 Modern Design
+- **Mint Theme**: Professional color scheme from tweakcn
 - **Noodle Connections**: Smooth, curved connection lines inspired by jsMind
 - **Smooth Animations**: Framer Motion powered transitions and micro-interactions
 - **Responsive Design**: Works seamlessly across different screen sizes
