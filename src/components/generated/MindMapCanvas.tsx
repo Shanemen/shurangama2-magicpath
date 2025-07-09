@@ -72,11 +72,49 @@ export default function MindMapCanvas({
   const levelSpacing = 280;
   const siblingSpacing = 150;
 
+  // 经文节点动态尺寸计算 - 只针对经文节点
+  const calculateScriptureNodeDimensions = useCallback((text: string): { width: number; height: number } => {
+    const charWidth = 14;
+    const lineHeight = 24;
+    const padding = 32; // 左右各16px
+    const minWidth = 200;
+    const maxWidth = 400;
+    const minHeight = 80;
+    const maxHeight = 160;
+    
+    // 真正的动态计算：基于实际文字长度
+    const contentWidth = text.length * charWidth + padding;
+    const finalWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth));
+    
+    // 基于实际换行计算高度
+    const maxCharsPerLine = Math.floor((finalWidth - padding) / charWidth);
+    const estimatedLines = Math.ceil(text.length / maxCharsPerLine);
+    const finalHeight = Math.min(maxHeight, Math.max(minHeight, estimatedLines * lineHeight + padding));
+    
+    // 调试输出
+    console.log(`🔍 动态计算 "${text.substring(0, 15)}...": 长度=${text.length}, 内容宽度=${contentWidth}px, 最终宽度=${finalWidth}px, 高度=${finalHeight}px`);
+    
+    return { width: finalWidth, height: finalHeight };
+  }, []);
+
+  // 获取节点尺寸 - 经文节点使用动态尺寸，普通节点使用固定尺寸
+  const getNodeDimensions = useCallback((node: MindMapNodeWithContent) => {
+    if (node.isScriptureNode) {
+      const dimensions = calculateScriptureNodeDimensions(node.title);
+      console.log(`📏 经文节点 "${node.title.substring(0, 10)}...": ${dimensions.width}x${dimensions.height}`);
+      return dimensions;
+    }
+    console.log(`📏 普通节点 "${node.title}": ${nodeWidth}x${nodeHeight}`);
+    return { width: nodeWidth, height: nodeHeight };
+  }, [calculateScriptureNodeDimensions, nodeWidth, nodeHeight]);
+
   // Memoized calculation of subtree height to avoid recalculation
   const calculateSubtreeHeight = useMemo(() => {
     const memoizedCalc = (node: MindMapNodeWithContent): number => {
+      const { height: currentNodeHeight } = getNodeDimensions(node);
+      
       if (!node.isExpanded || !node.children || node.children.length === 0) {
-        return nodeHeight;
+        return currentNodeHeight;
       }
       
       // Calculate total height needed by all children and their subtrees
@@ -90,11 +128,11 @@ export default function MindMapCanvas({
       const childrenTotalHeight = totalChildrenHeight + childSpacing;
       
       // Return the maximum of node height and children total height
-      return Math.max(nodeHeight, childrenTotalHeight);
+      return Math.max(currentNodeHeight, childrenTotalHeight);
     };
     
     return memoizedCalc;
-  }, [nodeHeight, siblingSpacing]);
+  }, [getNodeDimensions, siblingSpacing]);
 
   // Memoized layout calculation - only recalculate when nodes change
   const nodePositions = useMemo(() => {
@@ -103,28 +141,35 @@ export default function MindMapCanvas({
       x: number;
       y: number;
       level: number;
+      width: number;
+      height: number;
     }> => {
       const positions: Array<{
         node: MindMapNodeWithContent;
         x: number;
         y: number;
         level: number;
+        width: number;
+        height: number;
       }> = [];
       
       let currentY = startY;
       
       nodeList.forEach((node, index) => {
         const x = level * levelSpacing;
+        const { width: currentNodeWidth, height: currentNodeHeight } = getNodeDimensions(node);
         const subtreeHeight = calculateSubtreeHeight(node);
         
         // Position this node at the center of its allocated subtree space
-        const nodeY = currentY + subtreeHeight / 2 - nodeHeight / 2;
+        const nodeY = currentY + subtreeHeight / 2 - currentNodeHeight / 2;
         
         positions.push({
           node,
           x,
           y: nodeY,
-          level
+          level,
+          width: currentNodeWidth,
+          height: currentNodeHeight
         });
         
         // If node is expanded, layout its children
@@ -138,7 +183,7 @@ export default function MindMapCanvas({
           const childrenTotalHeight = totalChildrenHeight + childSpacing;
           
           // Start children layout from the top of their allocated space
-          const childrenStartY = nodeY + nodeHeight / 2 - childrenTotalHeight / 2;
+          const childrenStartY = nodeY + currentNodeHeight / 2 - childrenTotalHeight / 2;
           const childPositions = calculateLayout(node.children, level + 1, childrenStartY);
           positions.push(...childPositions);
         }
@@ -151,16 +196,16 @@ export default function MindMapCanvas({
     };
     
     return calculateLayout(nodes);
-  }, [nodes, calculateSubtreeHeight, nodeHeight, levelSpacing, siblingSpacing]);
+  }, [nodes, calculateSubtreeHeight, getNodeDimensions, levelSpacing, siblingSpacing]);
 
   // Memoized viewport adjustment calculation
   const viewportAdjustment = useMemo(() => {
     if (nodePositions.length === 0) return null;
     
     const minX = Math.min(...nodePositions.map(p => p.x));
-    const maxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
+    const maxX = Math.max(...nodePositions.map(p => p.x + p.width));
     const minY = Math.min(...nodePositions.map(p => p.y));
-    const maxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+    const maxY = Math.max(...nodePositions.map(p => p.y + p.height));
     
     const contentWidth = maxX - minX + 100;
     const contentHeight = maxY - minY + 100;
@@ -173,10 +218,11 @@ export default function MindMapCanvas({
       contentWidth,
       contentHeight
     };
-  }, [nodePositions, nodeWidth, nodeHeight]);
+  }, [nodePositions]);
 
-  // 监听data变化更新本地nodes状态
+  // 更新数据
   useEffect(() => {
+    if (!data) return;
     setNodes(data);
   }, [data]);
 
@@ -197,9 +243,12 @@ export default function MindMapCanvas({
       
       if (targetNodePosition) {
         const nodeScreenX = targetNodePosition.x * transform.scale + transform.x;
-        // 考虑lightbulb icon的位置：节点 + 40px偏移 + 16px半径 = 56px额外空间
-        const lightbulbIconSpace = 56;
-        const nodeWithIconRight = nodeScreenX + (nodeWidth + lightbulbIconSpace) * transform.scale;
+        // 智能计算lightbulb icon空间：根据节点宽度动态调整
+        const baseOffset = 12;
+        const dynamicOffset = Math.min(28, Math.max(4, (targetNodePosition.width - 200) * 0.15));
+        const lightbulbOffset = baseOffset + dynamicOffset;
+        const lightbulbIconSpace = lightbulbOffset + 16; // 偏移 + 圆形半径
+        const nodeWithIconRight = nodeScreenX + (targetNodePosition.width + lightbulbIconSpace) * transform.scale;
         
         // 计算被侧边栏遮挡的区域
         const sidebarLeft = bounds.width - sidebarWidth;
@@ -225,9 +274,9 @@ export default function MindMapCanvas({
           }, 300);
         }
       }
-    }
-    // 侧边栏收起时保持当前位置，用户可以手动使用"适应屏幕"按钮重新居中
-  }, [sidebarExpanded, selectedCommentaryNodeId, nodePositions, transform.scale, nodeWidth]);
+          }
+      // 侧边栏收起时保持当前位置，用户可以手动使用"适应屏幕"按钮重新居中
+    }, [sidebarExpanded, selectedCommentaryNodeId, nodePositions, transform.scale]);
 
   // Initial centering - only run once when data first loads
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -377,9 +426,9 @@ export default function MindMapCanvas({
       
       // Calculate bounds for the expanded content
       const nodeMinX = Math.min(...relevantPositions.map(p => p.x));
-      const nodeMaxX = Math.max(...relevantPositions.map(p => p.x)) + nodeWidth;
+      const nodeMaxX = Math.max(...relevantPositions.map(p => p.x)) + expandedNodePos.width;
       const nodeMinY = Math.min(...relevantPositions.map(p => p.y));
-      const nodeMaxY = Math.max(...relevantPositions.map(p => p.y)) + nodeHeight;
+      const nodeMaxY = Math.max(...relevantPositions.map(p => p.y)) + expandedNodePos.height;
       
       // Calculate current viewport bounds
       const currentViewLeft = -transform.x / transform.scale;
@@ -387,11 +436,11 @@ export default function MindMapCanvas({
       const currentViewRight = currentViewLeft + bounds.width / transform.scale;
       const currentViewBottom = currentViewTop + bounds.height / transform.scale;
       
-      // Calculate overall content bounds for intelligent positioning
-      const allMinX = Math.min(...nodePositions.map(p => p.x));
-      const allMaxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
-      const allMinY = Math.min(...nodePositions.map(p => p.y));
-      const allMaxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+              // Calculate overall content bounds for intelligent positioning
+        const allMinX = Math.min(...nodePositions.map(p => p.x));
+        const allMaxX = Math.max(...nodePositions.map(p => p.x + p.width));
+        const allMinY = Math.min(...nodePositions.map(p => p.y));
+        const allMaxY = Math.max(...nodePositions.map(p => p.y + p.height));
       
       console.log("🔍 Expanded content bounds:", { nodeMinX, nodeMaxX, nodeMinY, nodeMaxY });
       console.log("🔍 All content bounds:", { allMinX, allMaxX, allMinY, allMaxY });
@@ -482,9 +531,9 @@ export default function MindMapCanvas({
         }));
       } else {
         console.log("✅ Content already visible, no adjustment needed");
+              }
       }
-    }
-  }, [nodePositions, transform, nodeWidth, nodeHeight]);
+    }, [nodePositions, transform]);
 
   // Remove automatic viewport adjustment on every layout change
   // Instead, users can manually use fitToScreen when needed
@@ -747,9 +796,9 @@ export default function MindMapCanvas({
     
     // Calculate actual content bounds
     const minX = Math.min(...nodePositions.map(p => p.x));
-    const maxX = Math.max(...nodePositions.map(p => p.x)) + nodeWidth;
+    const maxX = Math.max(...nodePositions.map(p => p.x + p.width));
     const minY = Math.min(...nodePositions.map(p => p.y));
-    const maxY = Math.max(...nodePositions.map(p => p.y)) + nodeHeight;
+    const maxY = Math.max(...nodePositions.map(p => p.y + p.height));
     
     const contentWidth = maxX - minX;
     const contentHeight = maxY - minY;
@@ -785,11 +834,11 @@ export default function MindMapCanvas({
   };
 
   // Generate curved "noodle" path between nodes (inspired by jsMind)
-  const generatePath = (x1: number, y1: number, x2: number, y2: number) => {
-    const startX = x1 + nodeWidth;
-    const startY = y1 + nodeHeight / 2;
+  const generatePath = (x1: number, y1: number, x2: number, y2: number, height1: number, height2: number, width1: number) => {
+    const startX = x1 + width1;
+    const startY = y1 + height1 / 2;
     const endX = x2;
-    const endY = y2 + nodeHeight / 2;
+    const endY = y2 + height2 / 2;
     
     const deltaX = endX - startX;
     const deltaY = endY - startY;
@@ -825,6 +874,7 @@ export default function MindMapCanvas({
     role="application" 
     aria-label="Shurangama Sutra Mind Map"
   >
+
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-transparent focus:outline-none" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} onKeyDown={handleKeyDown} tabIndex={0} role="img" aria-describedby="mindmap-description" style={{ touchAction: 'none', outline: 'none' }} onClick={(e) => {
         // Only handle clicks on the SVG background, not on nodes
         if (e.target === e.currentTarget) {
@@ -848,14 +898,16 @@ export default function MindMapCanvas({
           node,
           x,
           y,
-          level
+          level,
+          width,
+          height
         }) => {
           if (!node.children || !node.isExpanded) return null;
           return node.children.map(child => {
             const childPos = nodePositions.find(p => p.node.id === child.id);
             if (!childPos) return null;
             const opacity = level === 0 ? 1 : level === 1 ? 0.8 : 0.6;
-            return <motion.path key={`${node.id}-${child.id}`} d={generatePath(x, y, childPos.x, childPos.y)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={opacity} className="stroke-primary" initial={{
+            return <motion.path key={`${node.id}-${child.id}`} d={generatePath(x, y, childPos.x, childPos.y, height, childPos.height, width)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={opacity} className="stroke-primary" initial={{
               pathLength: 0
             }} animate={{
               pathLength: 1
@@ -871,7 +923,9 @@ export default function MindMapCanvas({
           node,
           x,
           y,
-          level
+          level,
+          width,
+          height
         }) => {
           const opacity = 1; // All nodes now have full opacity for accessibility
           const highlighted = isHighlighted(node);
@@ -887,66 +941,101 @@ export default function MindMapCanvas({
           }} style={{
             opacity
           }}>
-                <motion.rect x={x} y={y} width={nodeWidth} height={nodeHeight} rx="12" strokeWidth={isFocused ? "3" : "1"} filter="url(#shadow)" className={cn("cursor-pointer transition-all duration-200 focus:outline-none", highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border", isFocused && "stroke-primary")} style={{ outline: 'none' }} onClick={(e) => {
-                  e.stopPropagation();
-                  handleNodeClick(node.id);
-                }} onFocus={() => setFocusedNodeId(node.id)} tabIndex={0} role="button" aria-expanded={node.isExpanded} aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} whileHover={{
-              scale: 1.02
-            }} whileTap={{
-              scale: 0.98
-            }} />
+                {/* 节点背景 - 经文节点和普通节点区分样式 */}
+                <motion.rect 
+                  x={x} 
+                  y={y} 
+                  width={width} 
+                  height={height} 
+                  rx={node.isScriptureNode ? "0" : "12"} 
+                  strokeWidth={isFocused ? "3" : node.isScriptureNode ? "0" : "1"} 
+                  filter={node.isScriptureNode ? "none" : "url(#shadow)"} 
+                  className={cn(
+                    "cursor-pointer transition-all duration-200 focus:outline-none",
+                    node.isScriptureNode ? "fill-transparent stroke-transparent" : 
+                    (highlighted ? "fill-primary stroke-primary" : "fill-card stroke-border"),
+                    isFocused && !node.isScriptureNode && "stroke-primary"
+                  )} 
+                  style={{ outline: 'none' }} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNodeClick(node.id);
+                  }} 
+                  onFocus={() => setFocusedNodeId(node.id)} 
+                  tabIndex={0} 
+                  role="button" 
+                  aria-expanded={node.isExpanded} 
+                  aria-label={`${node.title}, ${node.pageRef || ''}, Lecture ${node.lectureNumber || ''}`} 
+                  whileHover={{
+                    scale: 1.02
+                  }} 
+                  whileTap={{
+                    scale: 0.98
+                  }} 
+                />
                 
                 {/* Node title */}
                 {node.isScriptureNode ? (
-                  // 经文节点支持多行显示
-                  <foreignObject x={x + 8} y={y + 8} width={nodeWidth - 16} height={nodeHeight - 16}>
-                    <div className={cn("text-sm font-medium leading-tight p-2 h-full flex items-center", highlighted ? "text-primary-foreground" : "text-card-foreground")} style={{ fontFamily: "'Lora', serif" }}>
-                      {node.title.length > 60 ? `${node.title.substring(0, 60)}...` : node.title}
+                  // 经文节点 - 完整显示内容，使用绿色文字
+                  <foreignObject x={x + 8} y={y + 8} width={width - 16} height={height - 16}>
+                    <div className="text-sm font-medium leading-relaxed p-2 h-full flex items-start justify-center flex-col text-green-600" style={{ fontFamily: "'Lora', serif" }}>
+                      {node.title}
                     </div>
                   </foreignObject>
                 ) : (
+                  // 普通节点 - 保持原有样式
                   <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
                     {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
                   </text>
                 )}
 
                 {/* Commentary Lightbulb Icon - 只对经文节点显示 */}
-                {node.isScriptureNode && (
-                  <g
-                    style={{ transformOrigin: `${x + nodeWidth + 40}px ${y + nodeHeight / 2}px` }}
-                    className="hover:scale-110 transition-transform duration-200 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCommentaryClick(node.id, e);
-                    }}
-                  >
-                    <circle 
-                      cx={x + nodeWidth + 40} 
-                      cy={y + nodeHeight / 2} 
-                      r="16" 
-                      className="fill-white dark:fill-white"
-                      stroke="#22c55e"
-                      strokeWidth="2"
-                      filter="url(#shadow)"
-                    />
-                    <foreignObject
-                      x={x + nodeWidth + 40 - 8}
-                      y={y + nodeHeight / 2 - 8}
-                      width="16"
-                      height="16"
+                {node.isScriptureNode && (() => {
+                  // 使用节点右边界 + 一致的偏移量
+                  const CONSISTENT_OFFSET_VALUE = 20; // 统一的偏移距离
+                  const lightbulbX = x + width + CONSISTENT_OFFSET_VALUE;
+                  const lightbulbY = y + height / 2;
+                  
+                  // 调试信息：验证宽度计算
+                  console.log(`💡 灯泡位置 "${node.title.substring(0, 20)}...": 文本长度=${node.title.length}, 容器宽度=${width}px, 灯泡X=${lightbulbX}px`);
+                  
+                  return (
+                    <g
+                      style={{ transformOrigin: `${lightbulbX}px ${lightbulbY}px` }}
+                      className="hover:scale-110 transition-transform duration-200 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCommentaryClick(node.id, e);
+                      }}
                     >
-                      <Lightbulb 
-                        size={16} 
-                        className="pointer-events-none text-gray-600 dark:text-gray-400"
+                      <circle 
+                        cx={lightbulbX} 
+                        cy={lightbulbY} 
+                        r="16" 
+                        className="fill-white dark:fill-white"
+                        stroke="#22c55e"
+                        strokeWidth="2"
+                        filter="url(#shadow)"
                       />
-                    </foreignObject>
-                  </g>
-                )}
+                      <foreignObject
+                        x={lightbulbX - 8}
+                        y={lightbulbY - 8}
+                        width="16"
+                        height="16"
+                      >
+                        <Lightbulb 
+                          size={16} 
+                          className="pointer-events-none text-gray-600 dark:text-gray-400"
+                        />
+                      </foreignObject>
+                    </g>
+                  );
+                })()}
                 
 
                 
                 {/* Expansion indicator */}
-                {node.children && node.children.length > 0 && <motion.text x={x + nodeWidth - 16} y={y + nodeHeight - 12} fontSize="16" textAnchor="middle" className="pointer-events-none select-none fill-foreground" animate={{
+                {node.children && node.children.length > 0 && <motion.text x={x + width - 16} y={y + height - 12} fontSize="16" textAnchor="middle" className="pointer-events-none select-none fill-foreground" animate={{
               rotate: node.isExpanded ? 90 : 0
             }} transition={{
               duration: 0.2
