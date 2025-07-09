@@ -74,7 +74,7 @@ export default function MindMapCanvas({
 
   // 经文节点动态尺寸计算 - 只针对经文节点
   const calculateScriptureNodeDimensions = useCallback((text: string): { width: number; height: number } => {
-    const charWidth = 14;
+    const charWidth = 18; // 调整为适应16px font-medium中文字符
     const lineHeight = 24;
     const padding = 32; // 左右各16px
     const minWidth = 200;
@@ -92,7 +92,7 @@ export default function MindMapCanvas({
     const finalHeight = Math.min(maxHeight, Math.max(minHeight, estimatedLines * lineHeight + padding));
     
     // 调试输出
-    console.log(`🔍 动态计算 "${text.substring(0, 15)}...": 长度=${text.length}, 内容宽度=${contentWidth}px, 最终宽度=${finalWidth}px, 高度=${finalHeight}px`);
+    console.log(`🔍 动态计算 "${text.substring(0, 15)}...": 长度=${text.length}, 字符宽度=${charWidth}, 容器宽度=${finalWidth}px, 高度=${finalHeight}px`);
     
     return { width: finalWidth, height: finalHeight };
   }, []);
@@ -978,26 +978,33 @@ export default function MindMapCanvas({
                 {node.isScriptureNode ? (
                   // 经文节点 - 完整显示内容，使用绿色文字
                   <foreignObject x={x + 8} y={y + 8} width={width - 16} height={height - 16}>
-                    <div className="text-sm font-medium leading-relaxed p-2 h-full flex items-start justify-center flex-col text-green-600" style={{ fontFamily: "'Lora', serif" }}>
-                      {node.title}
+                    <div className="flex items-center justify-center flex-col text-green-600 h-full w-full" style={{ fontFamily: "var(--font-sans)" }}>
+                      <div className="text-base font-medium leading-relaxed p-2 overflow-hidden">
+                        {node.title}
+                      </div>
                     </div>
                   </foreignObject>
                 ) : (
                   // 普通节点 - 保持原有样式
-                  <text x={x + 16} y={y + 24} fontSize="14" fontWeight="600" fontFamily="'Lora', serif" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
-                    {node.title.length > 20 ? `${node.title.substring(0, 20)}...` : node.title}
+                  <text x={x + 16} y={y + 24} fontSize="14" fontWeight="400" fontFamily="var(--font-sans)" className={cn("pointer-events-none select-none", highlighted ? "fill-primary-foreground" : "fill-card-foreground")}>
+                    {node.title}
                   </text>
                 )}
 
                 {/* Commentary Lightbulb Icon - 只对经文节点显示 */}
                 {node.isScriptureNode && (() => {
-                  // 使用节点右边界 + 一致的偏移量
+                  // 基于文本内容实际宽度计算灯泡位置，确保一致的间距
+                  const charWidth = 18;
+                  const padding = 32;
+                  const textContentWidth = node.title.length * charWidth + padding;
+                  const actualContentWidth = Math.min(400, Math.max(200, textContentWidth));
+                  
                   const CONSISTENT_OFFSET_VALUE = 20; // 统一的偏移距离
-                  const lightbulbX = x + width + CONSISTENT_OFFSET_VALUE;
+                  const lightbulbX = x + actualContentWidth + CONSISTENT_OFFSET_VALUE;
                   const lightbulbY = y + height / 2;
                   
                   // 调试信息：验证宽度计算
-                  console.log(`💡 灯泡位置 "${node.title.substring(0, 20)}...": 文本长度=${node.title.length}, 容器宽度=${width}px, 灯泡X=${lightbulbX}px`);
+                  console.log(`💡 灯泡位置 "${node.title.substring(0, 20)}...": 文本长度=${node.title.length}, 内容宽度=${actualContentWidth}px, 容器宽度=${width}px, 灯泡X=${lightbulbX}px`);
                   
                   return (
                     <g

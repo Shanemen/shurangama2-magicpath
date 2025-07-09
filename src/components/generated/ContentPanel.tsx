@@ -87,7 +87,7 @@ export default function ContentPanel({
           transition={{ duration: 0.3, delay: 0.1 }}
           className="space-y-3"
         >
-          <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: "'Lora', serif" }}>
+          <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-title)" }}>
             {highlightText(scripture.title, searchQuery)}
           </h3>
           {scripture.chapter && (
@@ -98,7 +98,7 @@ export default function ContentPanel({
           )}
           <blockquote 
             className="text-lg leading-relaxed font-bold text-foreground max-w-[70ch]" 
-            style={{ fontFamily: "'Lora', serif" }} 
+            style={{ fontFamily: "var(--font-sans)" }} 
             lang="zh-Hant"
           >
             {highlightText(scripture.text, searchQuery)}
@@ -138,7 +138,7 @@ export default function ContentPanel({
               </span>
             </div>
           )}
-          <p className="text-base leading-relaxed text-foreground max-w-[70ch]">
+          <p className="text-base leading-relaxed text-foreground max-w-[70ch]" style={{ fontFamily: "var(--font-sans)" }}>
             {highlightText(commentary.text, searchQuery)}
           </p>
         </motion.section>
@@ -162,7 +162,7 @@ export default function ContentPanel({
               Claude
             </Badge>
           </div>
-          <p className="text-base leading-relaxed text-foreground max-w-[70ch]">
+          <p className="text-base leading-relaxed text-foreground max-w-[70ch]" style={{ fontFamily: "var(--font-sans)" }}>
             {highlightText(aiTranslation.content, searchQuery)}
           </p>
         </motion.section>

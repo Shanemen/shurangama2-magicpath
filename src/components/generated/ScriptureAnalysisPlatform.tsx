@@ -11,6 +11,9 @@ import TopToolbar from "./TopToolbar";
 // import ScriptureContentDisplay from "../ScriptureContent"; // 不再需要浮动经文组件
 import { useScriptureData } from "@/hooks/useScriptureData";
 import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
+import { BookOpen, Lightbulb } from "lucide-react";
+
 export interface ScriptureAnalysisPlatformProps {
   className?: string;
 }
@@ -142,9 +145,9 @@ export default function ScriptureAnalysisPlatform({
       root.style.setProperty('--sidebar-accent-foreground', 'oklch(0.98 0.01 260)');
       root.style.setProperty('--sidebar-border', 'oklch(1 0 0 / 12%)');
       root.style.setProperty('--sidebar-ring', 'oklch(0.6 0.01 260)');
-      root.style.setProperty('--font-sans', "'Poppins', system-ui, sans-serif");
-      root.style.setProperty('--font-serif', "'Lora', serif");
-      root.style.setProperty('--font-mono', "'Fira Code', monospace");
+      root.style.setProperty('--font-sans', '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans CN", "Noto Sans CJK SC", "WenQuanYi Micro Hei", Arial, sans-serif');
+      root.style.setProperty('--font-serif', '"Source Han Serif CN", "Noto Serif CJK SC", "Songti SC", "SimSun", "Georgia", serif');
+      root.style.setProperty('--font-mono', '"SF Mono", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace');
       root.style.setProperty('--radius', '0.75rem');
       root.style.setProperty('--shadow-xs', '0 1px 2px 0 oklch(0 0 0 / 0.04)');
       root.style.setProperty('--shadow-sm', '0 1.5px 4px 0 oklch(0 0 0 / 0.08)');
@@ -186,9 +189,9 @@ export default function ScriptureAnalysisPlatform({
       root.style.setProperty('--sidebar-accent-foreground', 'oklch(0.18 0.03 260)');
       root.style.setProperty('--sidebar-border', 'oklch(0.92 0.01 260)');
       root.style.setProperty('--sidebar-ring', 'oklch(0.7 0.01 260)');
-      root.style.setProperty('--font-sans', "'Poppins', system-ui, sans-serif");
-      root.style.setProperty('--font-serif', "'Lora', serif");
-      root.style.setProperty('--font-mono', "'Fira Code', monospace");
+      root.style.setProperty('--font-sans', '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans CN", "Noto Sans CJK SC", "WenQuanYi Micro Hei", Arial, sans-serif');
+      root.style.setProperty('--font-serif', '"Source Han Serif CN", "Noto Serif CJK SC", "Songti SC", "SimSun", "Georgia", serif');
+      root.style.setProperty('--font-mono', '"SF Mono", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace');
       root.style.setProperty('--radius', '0.75rem');
       root.style.setProperty('--shadow-xs', '0 1px 2px 0 oklch(0 0 0 / 0.03)');
       root.style.setProperty('--shadow-sm', '0 2px 8px 0 oklch(0 0 0 / 0.06)');
@@ -238,7 +241,7 @@ export default function ScriptureAnalysisPlatform({
   //   // setSelectedNodeContent(null);
   // };
   return <motion.div className={cn("min-h-screen w-full bg-background text-foreground transition-colors duration-300", "font-sans antialiased", className)} style={{
-    fontFamily: "'DM Sans', system-ui, sans-serif"
+    fontFamily: "var(--font-sans)"
   }} initial={{
     opacity: 0
   }} animate={{

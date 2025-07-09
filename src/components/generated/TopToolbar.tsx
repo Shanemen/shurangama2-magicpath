@@ -108,7 +108,7 @@ export default function TopToolbar({
           <Bird className="h-6 w-6 md:h-7 md:w-7 text-primary" />
         </motion.div>
         <motion.h1 className="text-xl md:text-2xl font-bold text-foreground" style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif"
+        fontFamily: "var(--font-title)"
       }} whileHover={{
         scale: 1.02
       }} transition={{
@@ -225,7 +225,7 @@ export default function TopToolbar({
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold" style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif"
+              fontFamily: "var(--font-title)"
             }}>
                 關於楞嚴經解析平台
               </DialogTitle>
