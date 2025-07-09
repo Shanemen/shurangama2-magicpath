@@ -367,8 +367,7 @@ export default function ScriptureAnalysisPlatform({
       {/* Focus Management for Accessibility */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {searchQuery && `Searching for: ${searchQuery}`}
-        {themeMode === 'system' ? (isDarkMode ? "跟隨系統主題 (當前：深色)" : "跟隨系統主題 (當前：淺色)") : 
-         themeMode === 'light' ? "淺色模式" : "深色模式"}
+        {themeMode === 'light' ? "淺色模式" : "深色模式"}
       </div>
 
       {/* 经文内容现在通过子节点显示，不再需要浮动组件 */}
