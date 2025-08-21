@@ -451,7 +451,7 @@ export default function BlogPage() {
                 <div className="flex justify-between items-center">
                   {/* 圆瑛法师 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 flex items-center justify-center shadow-sm border border-border overflow-hidden">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 flex items-center justify-center shadow-sm border border-blue-300 dark:border-blue-600 overflow-hidden">
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
                         <span className="text-lg text-muted-foreground">圆</span>
                       </div>
@@ -461,7 +461,7 @@ export default function BlogPage() {
                   
                   {/* 宽谦法师 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 flex items-center justify-center shadow-sm border border-border overflow-hidden">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 flex items-center justify-center shadow-sm border border-green-300 dark:border-green-600 overflow-hidden">
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
                         <span className="text-lg text-muted-foreground">宽</span>
                       </div>
@@ -471,7 +471,7 @@ export default function BlogPage() {
                   
                   {/* 杨宁老师 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 flex items-center justify-center shadow-sm border border-border overflow-hidden">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 flex items-center justify-center shadow-sm border border-purple-300 dark:border-purple-600 overflow-hidden">
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
                         <span className="text-lg text-muted-foreground">杨</span>
                       </div>
