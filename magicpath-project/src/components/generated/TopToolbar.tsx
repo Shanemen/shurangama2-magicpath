@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sun, Moon, Info, Search, Bird } from "lucide-react";
@@ -30,11 +31,12 @@ export default function TopToolbar({
   suggestions = defaultSuggestions,
   className
 }: TopToolbarProps) {
+  const navigate = useNavigate();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [aboutOpen, setAboutOpen] = useState(false);
+
 
   // Filter suggestions based on search query
   useEffect(() => {
@@ -208,53 +210,22 @@ export default function TopToolbar({
           </Button>
         </motion.div>
 
-        {/* About Button */}
-        <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
-          <DialogTrigger asChild>
-            <motion.div whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }}>
-              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} aria-label="關於平台">
-                <Info className="h-5 w-5" />
-              </Button>
-            </motion.div>
-          </DialogTrigger>
-          
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold" style={{
-              fontFamily: "var(--font-title)"
-            }}>
-                關於楞嚴經解析平台
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                本平台致力於提供現代化的佛經學習體驗，結合傳統經典與現代科技，
-                幫助學習者更深入地理解楞嚴經的智慧。
-              </p>
-              
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm">主要功能</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• 互動式心智圖導覽</li>
-                  <li>• 原文與註釋對照</li>
-                  <li>• AI 智能分析解讀</li>
-                  <li>• 全文搜尋功能</li>
-                </ul>
-              </div>
-              
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground">
-                  版本 1.0.0 | 開發團隊製作
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Blog Button */}
+        <motion.div whileHover={{
+          scale: 1.05
+        }} whileTap={{
+          scale: 0.95
+        }}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={cn("h-10 w-10 rounded-full", "transition-all duration-300", "hover:bg-accent hover:text-accent-foreground", "focus:ring-2 focus:ring-primary/20")} 
+            aria-label="我的经文见解"
+            onClick={() => navigate('/blog')}
+          >
+            <Info className="h-5 w-5" />
+          </Button>
+        </motion.div>
       </div>
     </motion.header>;
 }
