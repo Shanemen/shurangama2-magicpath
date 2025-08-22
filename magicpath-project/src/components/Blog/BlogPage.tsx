@@ -103,11 +103,12 @@ const mockBlogPosts = [
 
 export default function BlogPage() {
   const navigate = useNavigate();
-  const { themeMode, isDarkMode, toggleTheme } = useTheme();
+  const { themeMode, isDarkMode, toggleTheme, setThemeMode } = useTheme();
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
 
   // Apply theme to document - same as main page
   useEffect(() => {
@@ -175,42 +176,250 @@ export default function BlogPage() {
   if (selectedPostData) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto p-6">
-          {/* 返回按钮 */}
-          <Button 
-            variant="ghost" 
-            onClick={() => setSelectedPost(null)}
-            className="mb-6 flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            返回文章列表
-          </Button>
+        {/* Top Navigation - same as blog page */}
+        <motion.header 
+          className={cn(
+            "w-full h-16 px-4 md:px-6 flex items-center justify-between",
+            "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+            "border-b border-border"
+          )}
+          initial={{
+            opacity: 0,
+            y: -20
+          }}
+          animate={{
+            opacity: 1,
+            y: 0
+          }}
+          transition={{
+            duration: 0.3
+          }}
+        >
+          {/* Platform Title */}
+          <div className="flex items-center gap-3">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Rose className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+            </motion.div>
+            <motion.h1 
+              className="text-xl md:text-2xl font-bold text-foreground" 
+              style={{
+                fontFamily: "var(--font-title)"
+              }} 
+              whileHover={{
+                scale: 1.02
+              }} 
+              transition={{
+                duration: 0.2
+              }}
+            >
+              学习笔记分享
+            </motion.h1>
+          </div>
 
-          {/* 文章内容 */}
-          <article className="space-y-6">
-            <header className="space-y-4">
-              <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-title)" }}>
-                {selectedPostData.title}
-              </h1>
-              
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {selectedPostData.created_at}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Tag className="h-4 w-4" />
-                  <Badge variant="secondary">{selectedPostData.topic}</Badge>
-                </div>
-              </div>
-            </header>
+          {/* Navigation Controls */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle - Left */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className={cn(
+                  "h-10 w-10 rounded-full", 
+                  "transition-all duration-300", 
+                  "hover:bg-accent hover:text-accent-foreground", 
+                  "focus:ring-2 focus:ring-primary/20"
+                )}
+                aria-label={themeMode === 'light' ? "切换到深色模式" : "切换到浅色模式"}
+              >
+                <AnimatePresence mode="wait">
+                  {themeMode === 'light' ? 
+                    <motion.div 
+                      key="sun"
+                      initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Sun className="h-4 w-4" />
+                    </motion.div>
+                  : 
+                    <motion.div 
+                      key="moon"
+                      initial={{ opacity: 0, rotate: 90, scale: 0.8 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: -90, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Moon className="h-4 w-4" />
+                    </motion.div>
+                  }
+                </AnimatePresence>
+              </Button>
+            </motion.div>
 
-            <div className="prose prose-lg max-w-none dark:prose-invert">
-              <div className="whitespace-pre-line text-foreground leading-relaxed">
-                {selectedPostData.content}
-              </div>
+            {/* Home Button - Right */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/')}
+                className={cn(
+                  "h-10 w-10 rounded-full", 
+                  "transition-all duration-300", 
+                  "hover:bg-accent hover:text-accent-foreground", 
+                  "focus:ring-2 focus:ring-primary/20"
+                )}
+                aria-label="返回主页"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </div>
+        </motion.header>
+
+        {/* Main Content */}
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Left Sidebar - Back Button Area */}
+            <div className="lg:col-span-1">
+              <motion.div 
+                className="sticky top-6 space-y-4"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+              >
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedPost(null)}
+                  className="w-full flex items-center gap-2 h-12"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  Back
+                </Button>
+                
+                {/* Article Meta Info */}
+                <Card className="p-4 space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {selectedPostData.created_at}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <Badge variant="secondary">{selectedPostData.topic}</Badge>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
             </div>
-          </article>
+
+            {/* Main Article Content */}
+            <div className="lg:col-span-3">
+              <motion.article 
+                className="space-y-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                {/* Article Header */}
+                <header className="space-y-6 pb-6 border-b border-border">
+                  <h1 className="text-4xl md:text-5xl font-bold leading-tight text-foreground" 
+                      style={{ fontFamily: "var(--font-title)" }}>
+                    {selectedPostData.title}
+                  </h1>
+                  
+                  <p className="text-xl text-muted-foreground leading-relaxed">
+                    {selectedPostData.excerpt}
+                  </p>
+                </header>
+
+                {/* Article Body */}
+                <div className="prose prose-lg max-w-none dark:prose-invert">
+                  <div className="text-foreground leading-relaxed space-y-6 text-base md:text-lg">
+                    {selectedPostData.content.split('\n\n').map((paragraph, index) => {
+                      // Handle markdown-style headers
+                      if (paragraph.startsWith('## ')) {
+                        return (
+                          <h2 key={index} className="text-2xl md:text-3xl font-bold mt-12 mb-6 text-foreground" 
+                              style={{ fontFamily: "var(--font-title)" }}>
+                            {paragraph.replace('## ', '')}
+                          </h2>
+                        );
+                      }
+                      
+                      // Handle markdown-style subheaders  
+                      if (paragraph.startsWith('### ')) {
+                        return (
+                          <h3 key={index} className="text-xl md:text-2xl font-semibold mt-8 mb-4 text-foreground">
+                            {paragraph.replace('### ', '')}
+                          </h3>
+                        );
+                      }
+                      
+                      // Handle lists
+                      if (paragraph.includes('\n- ') || paragraph.startsWith('- ')) {
+                        const listItems = paragraph.split('\n').filter(line => line.startsWith('- '));
+                        return (
+                          <ul key={index} className="space-y-2 my-6">
+                            {listItems.map((item, itemIndex) => (
+                              <li key={itemIndex} className="flex items-start gap-3">
+                                <span className="w-2 h-2 bg-primary rounded-full mt-3 flex-shrink-0"></span>
+                                <span>{item.replace('- ', '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        );
+                      }
+                      
+                      // Handle numbered lists
+                      if (paragraph.match(/^\d+\./)) {
+                        const listItems = paragraph.split('\n').filter(line => line.match(/^\d+\./));
+                        return (
+                          <ol key={index} className="space-y-2 my-6">
+                            {listItems.map((item, itemIndex) => (
+                              <li key={itemIndex} className="flex items-start gap-3">
+                                <span className="w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-1">
+                                  {itemIndex + 1}
+                                </span>
+                                <span>{item.replace(/^\d+\.\s*/, '')}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        );
+                      }
+                      
+                      // Regular paragraphs
+                      if (paragraph.trim()) {
+                        return (
+                          <p key={index} className="leading-relaxed">
+                            {paragraph}
+                          </p>
+                        );
+                      }
+                      
+                      return null;
+                    })}
+                  </div>
+                </div>
+
+                {/* Article Footer */}
+                <footer className="pt-8 mt-12 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      最后更新: {selectedPostData.updated_at}
+                    </div>
+                    <div className="text-sm text-muted-foreground italic">
+                      梵小包日志
+                    </div>
+                  </div>
+                </footer>
+              </motion.article>
+            </div>
+          </div>
         </div>
       </div>
     );
