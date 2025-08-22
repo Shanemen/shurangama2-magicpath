@@ -13,89 +13,89 @@ import { cn } from '@/lib/utils';
 const mockBlogPosts = [
   {
     id: '1',
-    title: '楞严咒的修持心得',
-    excerpt: '经过多年的诵持楞严咒，我深深体会到这部咒语的不可思议威力。在日常修行中，楞严咒如同明灯，指引着修行的方向...',
-    content: `经过多年的诵持楞严咒，我深深体会到这部咒语的不可思议威力。
+    title: '楞嚴咒的修持心得',
+    excerpt: '經過多年的誦持楞嚴咒，我深深體會到這部咒語的不可思議威力。在日常修行中，楞嚴咒如同明燈，指引著修行的方向。每當心境浮躁時，持誦楞嚴咒能夠迅速安定內心，回歸清淨本性。通過持續的修持，我逐漸明白了楞嚴經中所說的「狂心若歇，歇即菩提」的深義...',
+    content: `經過多年的誦持楞嚴咒，我深深體會到這部咒語的不可思議威力。
 
-在日常修行中，楞严咒如同明灯，指引着修行的方向。每当心境浮躁时，持诵楞严咒能够迅速安定内心，回归清净本性。
+在日常修行中，楞嚴咒如同明燈，指引著修行的方向。每當心境浮躁時，持誦楞嚴咒能夠迅速安定內心，回歸清淨本性。
 
-## 修持要点
+## 修持要點
 
-1. **恭敬心** - 以虔诚恭敬的心持诵
-2. **专注力** - 保持注意力集中，不让心散乱
-3. **持续性** - 每日定时定量，培养习惯
+1. **恭敬心** - 以虔誠恭敬的心持誦
+2. **專注力** - 保持注意力集中，不讓心散亂
+3. **持續性** - 每日定時定量，培養習慣
 
-## 个人体悟
+## 個人體悟
 
-持咒过程中，我逐渐明白了楞严经中所说的"狂心若歇，歇即菩提"的深义。真正的修行不在于外相，而在于内心的转化。`,
+持咒過程中，我逐漸明白了楞嚴經中所說的「狂心若歇，歇即菩提」的深義。真正的修行不在於外相，而在於內心的轉化。`,
     topic: '修持心得',
     created_at: '2024-01-15',
     updated_at: '2024-01-15'
   },
-  {
-    id: '2', 
-    title: '五蕴皆空的现代理解',
-    excerpt: '色受想行识五蕴，在现代生活中如何理解和应用？通过科学的角度重新审视这一佛教核心概念...',
-    content: `色受想行识五蕴，在现代生活中如何理解和应用？
+    {
+    id: '2',
+    title: '五蘊皆空的現代理解',
+    excerpt: '色受想行識五蘊，在現代生活中如何理解和應用？通過科學的角度重新審視這一佛教核心概念。從認知科學的角度看，五蘊的構成正對應了人類意識的不同層面。在日常生活中觀察五蘊的運作，有助於我們減少對自我的執著，理解痛苦的根源，培養智慧觀照...',
+    content: `色受想行識五蘊，在現代生活中如何理解和應用？
 
-## 现代科学视角
+## 現代科學視角
 
-从认知科学的角度看，五蕴的构成正对应了人类意识的不同层面：
+從認知科學的角度看，五蘊的構成正對應了人類意識的不同層面：
 
-- **色蕴** - 物质身体，神经系统的物理基础
-- **受蕴** - 感受反应，情绪的神经化学反应
-- **想蕴** - 概念思维，大脑皮层的认知处理
-- **行蕴** - 意志行为，前额叶的决策机制  
-- **识蕴** - 基础意识，整体的意识状态
+- **色蘊** - 物質身體，神經系統的物理基礎
+- **受蘊** - 感受反應，情緒的神經化學反應
+- **想蘊** - 概念思維，大腦皮層的認知處理
+- **行蘊** - 意志行為，前額葉的決策機制  
+- **識蘊** - 基礎意識，整體的意識狀態
 
-## 实践应用
+## 實踐應用
 
-在日常生活中观察五蕴的运作，有助于我们：
-1. 减少对自我的执著
+在日常生活中觀察五蘊的運作，有助於我們：
+1. 減少對自我的執著
 2. 理解痛苦的根源
-3. 培养智慧观照`,
-    topic: '智慧开解',
+3. 培養智慧觀照`,
+    topic: '智慧開解',
     created_at: '2024-01-10',
     updated_at: '2024-01-10'
   },
   {
     id: '3',
-    title: '楞严经中的禅定次第',
-    excerpt: '楞严经详细阐述了禅定的不同阶段和修持方法。从初禅到四禅，每个阶段都有其特定的境界和体验...',
-    content: `楞严经详细阐述了禅定的不同阶段和修持方法。
+    title: '楞嚴經中的禪定次第',
+    excerpt: '楞嚴經詳細闡述了禪定的不同階段和修持方法。從初禪到四禪，每個階段都有其特定的境界和體驗。禪定是修行的核心，正如經中所說：「若不修禪定，智慧不現前。」通過系統的修持次第，從數息開始培養基礎定力，觀察身心變化而不執著境界...',
+    content: `楞嚴經詳細闡述了禪定的不同階段和修持方法。
 
-## 禅定的重要性
+## 禪定的重要性
 
-禅定是修行的核心，正如经中所说："若不修禅定，智慧不现前。"
+禪定是修行的核心，正如經中所說：「若不修禪定，智慧不現前。」
 
 ## 修持次第
 
-### 初禅
-- 离欲恶不善法
-- 心生喜乐
-- 有寻有伺
+### 初禪
+- 離欲惡不善法
+- 心生喜樂
+- 有尋有伺
 
-### 二禅  
-- 内心寂静
-- 无寻无伺
-- 定生喜乐
+### 二禪  
+- 內心寂靜
+- 無尋無伺
+- 定生喜樂
 
-### 三禅
-- 离喜妙乐
+### 三禪
+- 離喜妙樂
 - 正念正知
-- 身心轻安
+- 身心輕安
 
-### 四禅
-- 舍念清净
-- 不苦不乐
-- 心如明镜
+### 四禪
+- 捨念清淨
+- 不苦不樂
+- 心如明鏡
 
-## 现代修持建议
+## 現代修持建議
 
-1. 从数息开始，培养基础定力
-2. 观察身心变化，不执著境界
-3. 保持恒心，循序渐进`,
-    topic: '禅定修持',
+1. 從數息開始，培養基礎定力
+2. 觀察身心變化，不執著境界
+3. 保持恆心，循序漸進`,
+    topic: '禪定修持',
     created_at: '2024-01-05',
     updated_at: '2024-01-05'
   }
@@ -215,7 +215,7 @@ export default function BlogPage() {
                 duration: 0.2
               }}
             >
-              学习笔记分享
+              學習筆記分享
             </motion.h1>
           </div>
 
@@ -233,7 +233,7 @@ export default function BlogPage() {
                   "hover:bg-accent hover:text-accent-foreground", 
                   "focus:ring-2 focus:ring-primary/20"
                 )}
-                aria-label={themeMode === 'light' ? "切换到深色模式" : "切换到浅色模式"}
+                aria-label={themeMode === 'light' ? "切換到深色模式" : "切換到淺色模式"}
               >
                 <AnimatePresence mode="wait">
                   {themeMode === 'light' ? 
@@ -273,7 +273,7 @@ export default function BlogPage() {
                   "hover:bg-accent hover:text-accent-foreground", 
                   "focus:ring-2 focus:ring-primary/20"
                 )}
-                aria-label="返回主页"
+                aria-label="返回主頁"
               >
                 <Home className="h-4 w-4" />
               </Button>
@@ -410,10 +410,10 @@ export default function BlogPage() {
                 <footer className="pt-8 mt-12 border-t border-border">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      最后更新: {selectedPostData.updated_at}
+                      最後更新: {selectedPostData.updated_at}
                     </div>
                     <div className="text-sm text-muted-foreground italic">
-                      梵小包日志
+                      梵小包日誌
                     </div>
                   </div>
                 </footer>
@@ -425,7 +425,7 @@ export default function BlogPage() {
     );
   }
 
-  // 搜索功能
+  // 搜尋功能
   const filteredPostsBySearch = searchQuery.trim() 
     ? filteredPosts.filter(post => 
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -486,7 +486,7 @@ export default function BlogPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               type="text" 
-              placeholder="搜索文章内容..." 
+              placeholder="搜尋文章內容..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)}
               className={cn(
@@ -496,7 +496,7 @@ export default function BlogPage() {
                 "focus-visible:!ring-1 focus-visible:!ring-primary/30 focus-visible:!border-primary",
                 "hover:border-primary/50"
               )}
-              aria-label="搜索文章内容"
+              aria-label="搜尋文章內容"
             />
           </div>
         </div>
@@ -604,14 +604,14 @@ export default function BlogPage() {
               </div>
 
               {/* 文章列表 */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {filteredPostsBySearch.map(post => (
                   <Card 
                     key={post.id} 
                     className="cursor-pointer transition-transform duration-200 hover:-translate-y-1"
                     onClick={() => setSelectedPost(post.id)}
                   >
-                    <CardContent className="p-6">
+                    <CardContent className="p-4">
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs">
@@ -623,11 +623,16 @@ export default function BlogPage() {
                           {post.title}
                         </h3>
                         
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-sm text-muted-foreground leading-relaxed" style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
                           {post.excerpt}
                         </p>
                         
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {post.created_at}
@@ -645,7 +650,7 @@ export default function BlogPage() {
                   <p>
                     {searchQuery.trim() 
                       ? `未找到包含 "${searchQuery}" 的文章` 
-                      : "暂无相关文章"
+                      : "暫無相關文章"
                     }
                   </p>
                 </div>
@@ -658,34 +663,43 @@ export default function BlogPage() {
               <div>
                 <h3 className="text-lg text-muted-foreground font-semibold mb-4">Sources</h3>
                 <div className="flex justify-between items-center">
-                  {/* 圆瑛法师 */}
+                  {/* 圓瑛法師 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 flex items-center justify-center shadow-sm border border-blue-300 dark:border-blue-600 overflow-hidden">
+                    <div 
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 flex items-center justify-center shadow-sm border border-blue-300 dark:border-blue-600 overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-110 hover:shadow-md"
+                      onClick={() => window.open('https://github.com/yuqianyi1001/awesome-buddhist-dharma/blob/main/%E5%A4%A7%E4%BD%9B%E9%A1%B6%E9%A6%96%E6%A5%9E%E4%B8%A5%E7%BB%8F%E8%AE%B2%E4%B9%89(%E5%9C%86%E7%91%9B%E6%B3%95%E5%B8%88).pdf', '_blank', 'noopener,noreferrer')}
+                    >
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
-                        <span className="text-lg text-muted-foreground">圆</span>
+                        <span className="text-lg text-muted-foreground">圓</span>
                       </div>
                     </div>
-                    <span className="text-xs text-center text-muted-foreground font-medium">圆瑛法师</span>
+                    <span className="text-xs text-center text-muted-foreground font-medium">圓瑛法師</span>
                   </div>
                   
-                  {/* 宽谦法师 */}
+                  {/* 寬謙法師 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 flex items-center justify-center shadow-sm border border-green-300 dark:border-green-600 overflow-hidden">
+                    <div 
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 flex items-center justify-center shadow-sm border border-green-300 dark:border-green-600 overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-110 hover:shadow-md"
+                      onClick={() => window.open('https://www.youtube.com/watch?v=69MEBUbfY9U&list=PLOZUHRr4_koUM6VbplL8PxVSBffOA5R-v', '_blank', 'noopener,noreferrer')}
+                    >
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
-                        <span className="text-lg text-muted-foreground">宽</span>
+                        <span className="text-lg text-muted-foreground">寬</span>
                       </div>
                     </div>
-                    <span className="text-xs text-center text-muted-foreground font-medium">宽谦法师</span>
+                    <span className="text-xs text-center text-muted-foreground font-medium">寬謙法師</span>
                   </div>
                   
-                  {/* 杨宁老师 */}
+                  {/* 楊寧老師 */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 flex items-center justify-center shadow-sm border border-purple-300 dark:border-purple-600 overflow-hidden">
+                    <div 
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 flex items-center justify-center shadow-sm border border-purple-300 dark:border-purple-600 overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-110 hover:shadow-md"
+                      onClick={() => window.open('https://ziguijia.com/', '_blank', 'noopener,noreferrer')}
+                    >
                       <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
-                        <span className="text-lg text-muted-foreground">杨</span>
+                        <span className="text-lg text-muted-foreground">寧</span>
                       </div>
                     </div>
-                    <span className="text-xs text-center text-muted-foreground font-medium">杨宁老师</span>
+                    <span className="text-xs text-center text-muted-foreground font-medium">楊寧老師</span>
                   </div>
                 </div>
               </div>
@@ -703,8 +717,8 @@ export default function BlogPage() {
                             {/* 左侧灰色区域 */}
                             <div className="w-16 h-12 bg-muted flex items-center justify-center flex-shrink-0">
                               {topic === '修持心得' && <span className="text-sm text-muted-foreground">🧘</span>}
-                              {topic === '智慧开解' && <span className="text-sm text-muted-foreground">💡</span>}
-                              {topic === '禅定修持' && <span className="text-sm text-muted-foreground">⚡</span>}
+                              {topic === '智慧開解' && <span className="text-sm text-muted-foreground">💡</span>}
+                              {topic === '禪定修持' && <span className="text-sm text-muted-foreground">⚡</span>}
                             </div>
 
                             {/* 右侧文字区域 */}
@@ -722,7 +736,7 @@ export default function BlogPage() {
               <div>
                 <h3 className="text-lg text-muted-foreground font-semibold mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-3">
-                  {['#楞严咒', '#五蕴', '#禅定', '#智慧', '#修行', '#经文', '#佛法', '#心得'].map(tag => (
+                  {['#楞嚴咒', '#五蘊', '#禪定', '#智慧', '#修行', '#經文', '#佛法', '#心得'].map(tag => (
                     <div
                       key={tag}
                       className="cursor-pointer bg-card transition-all duration-200 hover:-translate-y-1 hover:text-primary px-4 py-2 rounded-lg shadow-sm border border-border text-sm font-medium text-foreground"
@@ -738,10 +752,10 @@ export default function BlogPage() {
               <div>
                 <h3 className="text-lg text-muted-foreground font-semibold mb-4">Let's Talk</h3>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  有任何修行疑问或想要分享心得？欢迎与我交流讨论。
+                  有任何修行疑問或想要分享心得？歡迎與我交流討論。
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
-                  联系讨论
+                  聯繫討論
                 </Button>
               </div>
             </div>
