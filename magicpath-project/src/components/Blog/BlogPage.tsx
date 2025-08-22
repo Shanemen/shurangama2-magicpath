@@ -8,98 +8,9 @@ import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
+import { useBlogPosts, type BlogPost } from '@/hooks/useBlogPosts';
 
-// 模拟博客数据
-const mockBlogPosts = [
-  {
-    id: '1',
-    title: '楞嚴咒的修持心得',
-    excerpt: '經過多年的誦持楞嚴咒，我深深體會到這部咒語的不可思議威力。在日常修行中，楞嚴咒如同明燈，指引著修行的方向。每當心境浮躁時，持誦楞嚴咒能夠迅速安定內心，回歸清淨本性。通過持續的修持，我逐漸明白了楞嚴經中所說的「狂心若歇，歇即菩提」的深義...',
-    content: `經過多年的誦持楞嚴咒，我深深體會到這部咒語的不可思議威力。
 
-在日常修行中，楞嚴咒如同明燈，指引著修行的方向。每當心境浮躁時，持誦楞嚴咒能夠迅速安定內心，回歸清淨本性。
-
-## 修持要點
-
-1. **恭敬心** - 以虔誠恭敬的心持誦
-2. **專注力** - 保持注意力集中，不讓心散亂
-3. **持續性** - 每日定時定量，培養習慣
-
-## 個人體悟
-
-持咒過程中，我逐漸明白了楞嚴經中所說的「狂心若歇，歇即菩提」的深義。真正的修行不在於外相，而在於內心的轉化。`,
-    topic: '修持心得',
-    created_at: '2024-01-15',
-    updated_at: '2024-01-15'
-  },
-    {
-    id: '2',
-    title: '五蘊皆空的現代理解',
-    excerpt: '色受想行識五蘊，在現代生活中如何理解和應用？通過科學的角度重新審視這一佛教核心概念。從認知科學的角度看，五蘊的構成正對應了人類意識的不同層面。在日常生活中觀察五蘊的運作，有助於我們減少對自我的執著，理解痛苦的根源，培養智慧觀照...',
-    content: `色受想行識五蘊，在現代生活中如何理解和應用？
-
-## 現代科學視角
-
-從認知科學的角度看，五蘊的構成正對應了人類意識的不同層面：
-
-- **色蘊** - 物質身體，神經系統的物理基礎
-- **受蘊** - 感受反應，情緒的神經化學反應
-- **想蘊** - 概念思維，大腦皮層的認知處理
-- **行蘊** - 意志行為，前額葉的決策機制  
-- **識蘊** - 基礎意識，整體的意識狀態
-
-## 實踐應用
-
-在日常生活中觀察五蘊的運作，有助於我們：
-1. 減少對自我的執著
-2. 理解痛苦的根源
-3. 培養智慧觀照`,
-    topic: '智慧開解',
-    created_at: '2024-01-10',
-    updated_at: '2024-01-10'
-  },
-  {
-    id: '3',
-    title: '楞嚴經中的禪定次第',
-    excerpt: '楞嚴經詳細闡述了禪定的不同階段和修持方法。從初禪到四禪，每個階段都有其特定的境界和體驗。禪定是修行的核心，正如經中所說：「若不修禪定，智慧不現前。」通過系統的修持次第，從數息開始培養基礎定力，觀察身心變化而不執著境界...',
-    content: `楞嚴經詳細闡述了禪定的不同階段和修持方法。
-
-## 禪定的重要性
-
-禪定是修行的核心，正如經中所說：「若不修禪定，智慧不現前。」
-
-## 修持次第
-
-### 初禪
-- 離欲惡不善法
-- 心生喜樂
-- 有尋有伺
-
-### 二禪  
-- 內心寂靜
-- 無尋無伺
-- 定生喜樂
-
-### 三禪
-- 離喜妙樂
-- 正念正知
-- 身心輕安
-
-### 四禪
-- 捨念清淨
-- 不苦不樂
-- 心如明鏡
-
-## 現代修持建議
-
-1. 從數息開始，培養基礎定力
-2. 觀察身心變化，不執著境界
-3. 保持恆心，循序漸進`,
-    topic: '禪定修持',
-    created_at: '2024-01-05',
-    updated_at: '2024-01-05'
-  }
-];
 
 export default function BlogPage() {
   const navigate = useNavigate();
@@ -108,6 +19,57 @@ export default function BlogPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  
+  // 使用真實的博客數據
+  const { 
+    posts, 
+    loading, 
+    error, 
+    getPostById, 
+    getTopics, 
+    getTags,
+    searchPosts 
+  } = useBlogPosts();
+
+  // 為主題自動分配emoji的函數
+  const getTopicEmoji = (topic: string): string => {
+    // 預定義的主題emoji映射
+    const topicEmojiMap: { [key: string]: string } = {
+      '修持心得': '🧘',
+      '智慧開解': '💡',
+      '禪定修持': '⚡',
+      '讀經感悟': '💡',
+      '读经感悟': '💡',
+      '佛學思辨': '🤔',
+      '佛学思辨': '🤔',
+      '生活感悟': '🌸',
+      '修行日記': '📝',
+      '修行日记': '📝',
+      '經典解讀': '📜',
+      '经典解读': '📜',
+      '心靈成長': '🌱',
+      '心灵成长': '🌱',
+      '禪修體驗': '🕉️',
+      '禅修体验': '🕉️'
+    };
+
+    // 如果有預定義的emoji，使用它
+    if (topicEmojiMap[topic]) {
+      return topicEmojiMap[topic];
+    }
+
+    // 否則根據主題內容智能分配emoji
+    if (topic.includes('修') || topic.includes('禪') || topic.includes('禅')) return '🧘';
+    if (topic.includes('智慧') || topic.includes('開解') || topic.includes('开解')) return '💡';
+    if (topic.includes('經') || topic.includes('经') || topic.includes('感悟')) return '📖';
+    if (topic.includes('思辨') || topic.includes('思考')) return '🤔';
+    if (topic.includes('生活') || topic.includes('日常')) return '🌸';
+    if (topic.includes('日記') || topic.includes('日记') || topic.includes('記錄') || topic.includes('记录')) return '📝';
+    if (topic.includes('成長') || topic.includes('成长') || topic.includes('心靈') || topic.includes('心灵')) return '🌱';
+    
+    // 默認emoji
+    return '📚';
+  };
 
 
   // Apply theme to document - same as main page
@@ -160,17 +122,34 @@ export default function BlogPage() {
     }
   }, [isDarkMode]);
 
-  const selectedPostData = selectedPost 
-    ? mockBlogPosts.find(post => post.id === selectedPost)
-    : null;
+  // 獲取選中的文章數據
+  const [selectedPostData, setSelectedPostData] = useState<BlogPost | null>(null);
+  const [topics, setTopics] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  // 获取所有主题
-  const topics = Array.from(new Set(mockBlogPosts.map(post => post.topic)));
+  // 載入選中的文章數據
+  useEffect(() => {
+    if (selectedPost) {
+      getPostById(selectedPost).then(setSelectedPostData);
+    } else {
+      setSelectedPostData(null);
+    }
+  }, [selectedPost, getPostById]);
 
-  // 筛选文章
+  // 載入主題和標籤 - 只在posts第一次加载完成后获取一次
+  useEffect(() => {
+    if (posts.length > 0 && topics.length === 0) {
+      getTopics().then(setTopics);
+    }
+    if (posts.length > 0 && availableTags.length === 0) {
+      getTags().then(setAvailableTags);
+    }
+  }, [posts.length, topics.length, availableTags.length, getTopics, getTags]);
+
+  // 篩選文章
   const filteredPosts = selectedTopic 
-    ? mockBlogPosts.filter(post => post.topic === selectedTopic)
-    : mockBlogPosts;
+    ? posts.filter(post => post.topic === selectedTopic)
+    : posts;
 
   // 如果选中了文章，显示文章详情
   if (selectedPostData) {
@@ -306,7 +285,7 @@ export default function BlogPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      {selectedPostData.created_at}
+                      {new Date(selectedPostData.journal_date).toLocaleDateString('zh-TW')}
                     </div>
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-muted-foreground" />
@@ -406,6 +385,17 @@ export default function BlogPage() {
                   </div>
                 </div>
 
+                {/* Featured Image */}
+                {selectedPostData.featured_image && (
+                  <div className="w-full overflow-hidden rounded-lg my-8">
+                    <img 
+                      src={selectedPostData.featured_image} 
+                      alt={selectedPostData.title}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                )}
+
                 {/* Article Footer */}
                 <footer className="pt-8 mt-12 border-t border-border">
                   <div className="flex items-center justify-between">
@@ -427,12 +417,34 @@ export default function BlogPage() {
 
   // 搜尋功能
   const filteredPostsBySearch = searchQuery.trim() 
-    ? filteredPosts.filter(post => 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.topic.toLowerCase().includes(searchQuery.toLowerCase())
+    ? searchPosts(searchQuery).filter(post => 
+        selectedTopic ? post.topic === selectedTopic : true
       )
     : filteredPosts;
+
+  // 顯示加載狀態
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 顯示錯誤狀態
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-500">載入失敗: {error}</p>
+          <Button onClick={() => window.location.reload()}>重試</Button>
+        </div>
+      </div>
+    );
+  }
 
   // 显示文章列表
   return (
@@ -625,19 +637,25 @@ export default function BlogPage() {
                         
                         <p className="text-sm text-muted-foreground leading-relaxed" style={{
                           display: '-webkit-box',
-                          WebkitLineClamp: 3,
+                          WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden'
                         }}>
-                          {post.excerpt}
-                        </p>
+                          {/* 显示文章内容的前两行，去除markdown标记 */}
+                          {post.content
+                            .replace(/^#{1,6}\s+/gm, '') // 去除标题标记
+                            .replace(/\*\*(.*?)\*\*/g, '$1') // 去除粗体标记
+                            .replace(/^-\s+/gm, '') // 去除列表标记
+                            .replace(/\n{2,}/g, ' ') // 将多个换行符替换为空格
+                            .substring(0, 200) // 增加字符限制，让内容足够填满两行
+                          }...</p>
                         
                         <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {post.created_at}
+                            {new Date(post.journal_date).toLocaleDateString('zh-TW')}
                           </div>
-                          <span>• 3 min</span>
+                          <span>• {post.reading_time_minutes} 分鐘</span>
                         </div>
                       </div>
                     </CardContent>
@@ -716,9 +734,7 @@ export default function BlogPage() {
                           >
                             {/* 左侧灰色区域 */}
                             <div className="w-16 h-12 bg-muted flex items-center justify-center flex-shrink-0">
-                              {topic === '修持心得' && <span className="text-sm text-muted-foreground">🧘</span>}
-                              {topic === '智慧開解' && <span className="text-sm text-muted-foreground">💡</span>}
-                              {topic === '禪定修持' && <span className="text-sm text-muted-foreground">⚡</span>}
+                              <span className="text-lg text-muted-foreground">{getTopicEmoji(topic)}</span>
                             </div>
 
                             {/* 右侧文字区域 */}
@@ -736,13 +752,13 @@ export default function BlogPage() {
               <div>
                 <h3 className="text-lg text-muted-foreground font-semibold mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-3">
-                  {['#楞嚴咒', '#五蘊', '#禪定', '#智慧', '#修行', '#經文', '#佛法', '#心得'].map(tag => (
+                  {availableTags.map(tag => (
                     <div
                       key={tag}
                       className="cursor-pointer bg-card transition-all duration-200 hover:-translate-y-1 hover:text-primary px-4 py-2 rounded-lg shadow-sm border border-border text-sm font-medium text-foreground"
                       onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                     >
-                      {tag}
+                      #{tag}
                     </div>
                   ))}
                 </div>
